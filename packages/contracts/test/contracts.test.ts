@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   applyReadingDict,
+  assertGenerationBudget,
   brandKitSchema,
   estimateNarrationMs,
   giftAssetKeysFixture,
@@ -75,6 +76,16 @@ describe("validateVideoPlan", () => {
     const plan = clonePlan();
     plan.scenes[4]!.visual.backgroundKey = "beach";
     expect(validateVideoPlan(plan, { brand }).ok).toBe(true);
+  });
+});
+
+describe("assertGenerationBudget", () => {
+  it("設定上限以内の画像生成を許可する", () => {
+    expect(() => assertGenerationBudget({ budget: { maxGeneratedImages: 2 } }, 2)).not.toThrow();
+  });
+
+  it("設定上限を超える画像生成をProvider前に拒否する", () => {
+    expect(() => assertGenerationBudget({ budget: { maxGeneratedImages: 0 } }, 1)).toThrow(/上限 0/);
   });
 });
 

@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { brandKitSchema, giftAssetKeysFixture } from "@shortfactory/contracts";
+import { assertGenerationBudget, brandKitSchema, GenerationBudgetExceededError, giftAssetKeysFixture } from "@shortfactory/contracts";
 import { FixtureTextProvider } from "@shortfactory/providers";
 import { brands, createVideoRepository, videos, workspaces } from "@shortfactory/db";
 import { getDb } from "../../../../../lib/db";
@@ -8,7 +8,7 @@ import { getRequestSession } from "../../../../../lib/session";
 
 export const runtime = "nodejs";
 
-export async function POST(_request: Request, context: { params: Promise<{ id: string }> }) {
+export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   const session = await getRequestSession();
   if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { id } = await context.params;
@@ -23,6 +23,21 @@ export async function POST(_request: Request, context: { params: Promise<{ id: s
     if (!row) return NextResponse.json({ error: "video_not_found" }, { status: 404 });
 
     const brand = brandKitSchema.parse(row.brand.kitJson);
+    let requestedImages = 0;
+    try {
+      const input = await request.json() as { requestedImages?: unknown };
+      if (input.requestedImages !== undefined) requestedImages = Number(input.requestedImages);
+    } catch {
+      // An empty POST body is the normal fixture path.
+    }
+    try {
+      assertGenerationBudget(brand, requestedImages);
+    } catch (error) {
+      if (error instanceof GenerationBudgetExceededError) {
+        return NextResponse.json({ error: error.code, requestedImages: error.requestedImages, maxGeneratedImages: error.maxGeneratedImages }, { status: 429 });
+      }
+      return NextResponse.json({ error: "invalid_generation_budget" }, { status: 400 });
+    }
     const plan = await new FixtureTextProvider().generatePlan({
       topic: row.video.topic,
       brand,

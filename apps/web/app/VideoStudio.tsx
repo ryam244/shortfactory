@@ -39,8 +39,12 @@ export default function VideoStudio() {
     if (!createResponse.ok) { setError("動画レコードを作成できません。"); setBusy(false); return; }
     const created = await createResponse.json() as { video: Video };
     setVideo(created.video);
-    const planResponse = await fetch(`/api/videos/${created.video.id}/generate-plan`, { method: "POST" });
-    if (!planResponse.ok) { setError("台本を生成できません。"); setBusy(false); return; }
+    const planResponse = await fetch(`/api/videos/${created.video.id}/generate-plan`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ requestedImages: 0 }) });
+    if (!planResponse.ok) {
+      const body = await planResponse.json().catch(() => ({})) as { error?: string; maxGeneratedImages?: number };
+      setError(body.error === "generation_budget_exceeded" ? `画像生成の上限（${body.maxGeneratedImages}枚）を超えています。` : "台本を生成できません。");
+      setBusy(false); return;
+    }
     const generated = await planResponse.json() as { video: Video; plan: Plan };
     setVideo(generated.video); setPlan(generated.plan); setMessage("fixture Directorで台本を生成しました。編集して保存できます。"); setBusy(false);
   }

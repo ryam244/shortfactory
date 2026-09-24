@@ -13,6 +13,9 @@ importers:
       '@shortfactory/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@shortfactory/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@shortfactory/db':
         specifier: workspace:*
         version: link:../../packages/db

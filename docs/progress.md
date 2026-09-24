@@ -1,11 +1,11 @@
 # Short Factory 進行表
 
-最終更新：2026-09-24 17:00 JST
+最終更新：2026-09-24 17:55 JST
 基準文書：[master-plan.md](./master-plan.md)
 
 ## 現在地
 
-**Phase 0aのローカル配線テストまで完了。品質判定は未完了。**
+**Phase 1の認証・所有者確認APIまで進行。Phase 0aの品質判定とPhase 1の画面・運用は未完了。**
 
 JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC上で1080×1920のMP4を1コマンド生成できる。現在のテストデータは動作確認用であり、実ブランドの品質合格とは扱わない。
 
@@ -16,7 +16,7 @@ JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC
 | 前提：素材準備 | 未完了 | asset key、ローカル素材マニフェストの契約 | 実ブランドのキャラ・表情・背景・小物・BGMと利用権情報を揃える |
 | 0a：品質検証 | 配線完了・品質判定待ち | `VideoPlan`、fixture、JSON台本、VOICEVOX、Storage、Remotion、技術検証 | 実台本＋実素材で5本生成し、人手評価4/5以上。TTS候補と合成方式を決定 |
 | 0b：環境確定 | 未着手 | VOICEVOX単体Docker運用を確認 | Postgres・VOICEVOX・WorkerのCompose化、Text API・単価・規約の記録 |
-| 1：基盤 | 未着手 | なし | Web、認証、DB、ブランド登録、CI、バックアップ |
+| 1：基盤 | 一部完了 | Next.jsのログイン画面、DBユーザー認証、署名セッション、未ログイン拒否、Workspace所有者確認付きブランド一覧・登録API | ブランド設定画面、Workspace初期登録手順、CI、日次バックアップ |
 | 2：台本 | 一部完了 | `VideoPlan`、JSON台本Provider、読み辞書・検証 | Director API、台本保存API、編集画面 |
 | 3：素材・音声 | 一部完了 | `StorageProvider`、`AssetProvider`、VOICEVOX、尺計算 | 素材登録・検索、権利情報、原価上限、部分再生成 |
 | 4：動画 | CLI完了・アプリ未着手 | Remotionテンプレート、MP4、ffprobe技術検証、安全域 | Remotion Player、Workerジョブ、プレビューとMP4の一致確認 |
@@ -43,6 +43,9 @@ JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC
 - `packages/auth`にscryptパスワードハッシュ、署名付きセッション、HttpOnly/SameSite/Secure Cookie属性を追加（ログインAPI・環境変数接続は未実装）
 - `apps/web`にNext.jsログイン画面とlogin/logout/session APIを追加。`DATABASE_URL`設定時はDBユーザー照合、未設定時は開発用管理者環境変数へフォールバック（レート制限・ユーザー作成UIは未実装）
 - 開発HTTPではセッションCookieの`Secure`属性を外し、本番`NODE_ENV=production`では`Secure`を維持する設定を追加
+- `GET/POST /api/brands`を追加。ログイン必須、DBユーザーの所有Workspaceだけを対象にし、`brandKitSchema`検証後に保存する
+- 起動済みNext.jsへ未ログインで`GET /api/brands`を実行し、`401 {"error":"unauthorized"}`を確認
+- `apps/web`の認証ユニットテスト2件を追加し、全体テストで実行するよう変更
 - 最終テスト動画：1080×1920、30fps、H.264、AAC、約28.5秒
 - Phase 0a人手評価：0/5。実素材・実Directorが未接続のため、品質判定はまだ開始しない
 

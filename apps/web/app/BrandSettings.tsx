@@ -4,7 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 
 type Workspace = { id: string; name: string };
 type Brand = { id: string; workspaceId: string; name: string };
-type Asset = { id: string; key: string; kind: string; source: string; rightsNote: string };
+type Asset = { id: string; key: string; kind: string; contentType: string; source: string; rightsNote: string };
 
 const initialForm = {
   name: "", style: "淡い手描き風", tone: "親しみやすく短く", cta: "保存してあとで見返してね",
@@ -27,6 +27,8 @@ export default function BrandSettings() {
   const [assetRightsNote, setAssetRightsNote] = useState("");
   const [assetFile, setAssetFile] = useState<File | null>(null);
   const [assets, setAssets] = useState<Asset[]>([]);
+  const [assetQuery, setAssetQuery] = useState("");
+  const [assetKindFilter, setAssetKindFilter] = useState("all");
 
   useEffect(() => { void load(); }, []);
 
@@ -80,6 +82,13 @@ export default function BrandSettings() {
     await loadAssets(assetBrandId);
   }
 
+  const assetKinds = [...new Set(assets.map((asset) => asset.kind))].sort();
+  const visibleAssets = assets.filter((asset) => {
+    const query = assetQuery.trim().toLowerCase();
+    const matchesQuery = !query || [asset.key, asset.source, asset.rightsNote, asset.contentType].some((value) => value.toLowerCase().includes(query));
+    return matchesQuery && (assetKindFilter === "all" || asset.kind === assetKindFilter);
+  });
+
   return <section>
     <h2>Workspace</h2>
     <form onSubmit={createWorkspace}><input aria-label="Workspace名" value={workspaceName} onChange={(event) => setWorkspaceName(event.target.value)} placeholder="例：自社SNS" required /><button>作成</button></form>
@@ -107,6 +116,15 @@ export default function BrandSettings() {
       <label>ファイル<input type="file" accept="image/*,audio/*,video/*" onChange={(event) => setAssetFile(event.target.files?.[0] ?? null)} required /></label>
       <button type="submit">素材を登録</button>
     </form>
-    {assets.length > 0 && <><h3>登録済み素材</h3><ul>{assets.map((asset) => <li key={asset.id}><a href={`/api/assets/${asset.id}/content`} target="_blank" rel="noreferrer">{asset.key}</a>（{asset.kind} / {asset.source}）</li>)}</ul></>}
+    {assets.length > 0 && <>
+      <h3>登録済み素材</h3>
+      <label>素材検索<input value={assetQuery} onChange={(event) => setAssetQuery(event.target.value)} placeholder="キー、出所、権利情報、MIMEタイプ" /></label>
+      <label>種類<select value={assetKindFilter} onChange={(event) => setAssetKindFilter(event.target.value)}><option value="all">すべて</option>{assetKinds.map((kind) => <option key={kind} value={kind}>{kind}</option>)}</select></label>
+      {visibleAssets.length === 0 ? <p role="status">条件に一致する素材はありません。</p> : <ul>{visibleAssets.map((asset) => <li key={asset.id}>
+        <a href={`/api/assets/${asset.id}/content`} target="_blank" rel="noreferrer">{asset.key}</a>
+        <span>（{asset.kind} / {asset.contentType}）</span>
+        <details><summary>出所・利用権情報</summary><p>出所：{asset.source}</p><p>利用権：{asset.rightsNote}</p></details>
+      </li>)}</ul>}
+    </>}
   </section>;
 }

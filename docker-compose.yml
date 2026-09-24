@@ -56,7 +56,6 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-shortfactory}:${POSTGRES_PASSWORD:-shortfactory-local-only}@postgres:5432/${POSTGRES_DB:-shortfactory}
       SHORTFACTORY_STORAGE_ROOT: /data/storage
-      REMOTION_BROWSER_EXECUTABLE: /usr/bin/chromium
     volumes:
       - shortfactory-storage:/data/storage
     depends_on:

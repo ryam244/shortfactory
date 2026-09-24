@@ -17,6 +17,7 @@
     "evaluation:manifest": "tsx scripts/create-evaluation-manifest.ts",
     "evaluation:technical": "tsx scripts/check-technical-evaluation.ts",
     "evaluation:summary": "tsx scripts/summarize-evaluation.ts",
+    "evaluation:review": "tsx scripts/review-evaluation.ts",
     "render:sample": "tsx scripts/render-sample.ts",
     "typecheck": "tsc -p tsconfig.json",
     "test": "echo \"no tests yet\""

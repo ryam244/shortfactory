@@ -53,6 +53,7 @@ pnpm --filter @shortfactory/video pipeline:fixture:batch              # 固定fi
 pnpm --filter @shortfactory/video evaluation:manifest                 # 人手評価用マニフェストを作成
 pnpm --filter @shortfactory/video evaluation:technical                # 音声・尺・MP4の機械検証
 pnpm --filter @shortfactory/video evaluation:summary                  # Phase 0aの合格状態を集計
+pnpm --filter @shortfactory/video evaluation:review -- --help          # 人手評価を1本ずつ記録
 ```
 
 初回の書き出しでは、RemotionがChrome Headless Shellを自動でダウンロードする。

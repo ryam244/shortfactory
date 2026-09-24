@@ -12,6 +12,11 @@ export function estimateNarrationMs(text: string): number {
   return Math.round(chars * 130);
 }
 
+/** FixtureVoiceProviderとPreviewが共有する、決定的な音声尺。 */
+export function fixtureVoiceDurationMs(text: string): number {
+  return Math.max(400, estimateNarrationMs(text));
+}
+
 export interface SceneTimingInput {
   scene: Pick<Scene, "minDurationMs" | "maxDurationMs">;
   /** TTSの実測尺（なければ見積もり）。 */

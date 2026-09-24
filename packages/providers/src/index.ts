@@ -4,6 +4,7 @@ import {
   giftBrandFixture,
   giftPlanFixture,
   validateVideoPlan,
+  fixtureVoiceDurationMs,
   type BrandKit,
   type VideoPlan,
   type VideoPlanInput,
@@ -84,7 +85,7 @@ export class FixtureTextProvider implements TextProvider {
 /** TTS接続前の決定的fixture。無音WAVで音声経路と尺を検証する。 */
 export class FixtureVoiceProvider implements VoiceProvider {
   async synthesize(input: VoiceRequest): Promise<GeneratedAudio> {
-    const durationMs = Math.max(400, [...input.text.replace(/\s/g, "")].length * 130);
+    const durationMs = fixtureVoiceDurationMs(input.text);
     return { bytes: silentWav(durationMs), durationMs, contentType: "audio/wav" };
   }
 }

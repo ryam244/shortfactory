@@ -1,11 +1,11 @@
 "use client";
 
 import { Player } from "@remotion/player";
-import { estimateNarrationMs, resolveSceneTiming, type BrandKit, type VideoPlan } from "@shortfactory/contracts";
+import { fixtureVoiceDurationMs, resolveSceneTiming, type BrandKit, type VideoPlan } from "@shortfactory/contracts";
 import { YuruAnimeV1, type YuruAnimeProps } from "@shortfactory/video";
 
 export function PreviewPlayer({ plan, brand }: { plan: VideoPlan; brand: BrandKit }) {
-  const timing = resolveSceneTiming(plan.scenes.map((scene) => ({ scene, narrationMs: estimateNarrationMs(scene.narration) })), plan.fps);
+  const timing = resolveSceneTiming(plan.scenes.map((scene) => ({ scene, narrationMs: fixtureVoiceDurationMs(scene.narration) })), plan.fps);
   const props: YuruAnimeProps = {
     plan,
     brand,

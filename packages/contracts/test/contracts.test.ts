@@ -4,6 +4,7 @@ import {
   assertGenerationBudget,
   brandKitSchema,
   estimateNarrationMs,
+  fixtureVoiceDurationMs,
   giftAssetKeysFixture,
   giftBrandFixture,
   giftPlanFixture,
@@ -102,6 +103,11 @@ describe("読み辞書", () => {
 });
 
 describe("resolveSceneTiming", () => {
+  it("fixture音声の尺はPreviewとWorkerで共有できる", () => {
+    expect(fixtureVoiceDurationMs("短い" )).toBe(400);
+    expect(fixtureVoiceDurationMs("手土産で迷わない3つのコツ")).toBe(13 * 130);
+  });
+
   it("フレーム合計が総尺と一致し、丸め誤差が溜まらない", () => {
     const scene = { minDurationMs: 1_000, maxDurationMs: 10_000 };
     // 1シーン1033msは30fpsで30.99フレーム。単純に丸めると合計がずれる。

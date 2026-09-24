@@ -6,6 +6,25 @@ import { brands, workspaces, createVideoRepository } from "@shortfactory/db";
 
 export const runtime = "nodejs";
 
+export async function GET(request: Request) {
+  const session = await getRequestSession();
+  if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const workspaceId = new URL(request.url).searchParams.get("workspaceId");
+  if (!workspaceId) return NextResponse.json({ error: "workspace_id_required" }, { status: 400 });
+
+  try {
+    const db = getDb();
+    const [ownedWorkspace] = await db.select({ id: workspaces.id }).from(workspaces)
+      .where(and(eq(workspaces.id, workspaceId), eq(workspaces.ownerUserId, session.subject))).limit(1);
+    if (!ownedWorkspace) return NextResponse.json({ error: "workspace_forbidden" }, { status: 403 });
+    const videos = await createVideoRepository(db).listByWorkspace(workspaceId);
+    return NextResponse.json({ videos });
+  } catch (error) {
+    console.error("video list failed", error);
+    return NextResponse.json({ error: "video_list_failed" }, { status: 503 });
+  }
+}
+
 export async function POST(request: Request) {
   const session = await getRequestSession();
   if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });

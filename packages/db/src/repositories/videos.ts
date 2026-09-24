@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import type { VideoPlan } from "@shortfactory/contracts";
 import type { ShortFactoryDb } from "../client";
 import { videos } from "../schema";
@@ -15,6 +15,10 @@ export function createVideoRepository(db: ShortFactoryDb) {
     async findById(id: string) {
       const [video] = await db.select().from(videos).where(eq(videos.id, id)).limit(1);
       return video ?? null;
+    },
+
+    async listByWorkspace(workspaceId: string) {
+      return db.select().from(videos).where(eq(videos.workspaceId, workspaceId)).orderBy(desc(videos.createdAt));
     },
 
     async savePlan(id: string, plan: VideoPlan) {

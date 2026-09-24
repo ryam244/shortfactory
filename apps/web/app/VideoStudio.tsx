@@ -6,7 +6,7 @@ import { PreviewPlayer } from "./PreviewPlayer";
 
 type Workspace = { id: string; name: string };
 type Brand = { id: string; workspaceId: string; name: string; kit: BrandKit };
-type Video = { id: string; workspaceId: string; brandId: string; topic: string; version: number; status: string };
+type Video = { id: string; workspaceId: string; brandId: string; topic: string; version: number; status: string; planJson?: Plan | null };
 type Plan = VideoPlan;
 type CostSummary = { estimatedJpy: string; costs: Array<{ provider: string; model: string; unit: string; estimatedJpy: string }> };
 type RenderJob = { id: string; status: string; step: string | null; errorCode?: string | null };
@@ -39,7 +39,32 @@ export default function VideoStudio() {
     const workspaceData = await workspaceResponse.json() as { workspaces: Workspace[] };
     const brandData = await brandResponse.json() as { brands: Brand[] };
     setWorkspaces(workspaceData.workspaces); setBrands(brandData.brands);
-    if (workspaceData.workspaces[0]) setWorkspaceId(workspaceData.workspaces[0].id);
+    const workspace = workspaceData.workspaces[0];
+    if (!workspace) return;
+    setWorkspaceId(workspace.id);
+    const videosResponse = await fetch(`/api/videos?workspaceId=${encodeURIComponent(workspace.id)}`);
+    if (!videosResponse.ok) return;
+    const videoData = await videosResponse.json() as { videos: Video[] };
+    const latestVideo = videoData.videos[0];
+    if (!latestVideo) return;
+    const latestBrand = brandData.brands.find((brand) => brand.id === latestVideo.brandId && brand.workspaceId === workspace.id);
+    if (!latestBrand || !latestVideo.planJson) return;
+    setBrandId(latestVideo.brandId);
+    setTopic(latestVideo.topic);
+    setVideo(latestVideo);
+    setPlan(latestVideo.planJson);
+    await loadPreviewAssets(latestVideo.brandId);
+    const [costsResponse, renderResponse] = await Promise.all([
+      fetch(`/api/videos/${latestVideo.id}/costs`),
+      fetch(`/api/videos/${latestVideo.id}/render`),
+    ]);
+    if (costsResponse.ok) setCostSummary(await costsResponse.json() as CostSummary);
+    if (renderResponse.ok) {
+      const renderData = await renderResponse.json() as { jobs: RenderJob[] };
+      const latestRenderJob = renderData.jobs.find((job) => job.id);
+      if (latestRenderJob) setRenderJob(latestRenderJob);
+    }
+    setMessage("保存済みの最新動画を復元しました。");
   }
 
   async function loadPreviewAssets(selectedBrandId: string) {

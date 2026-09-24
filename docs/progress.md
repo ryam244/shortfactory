@@ -17,7 +17,7 @@ JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC
 | 0a：品質検証 | 配線完了・品質判定待ち | `VideoPlan`、fixture、JSON台本、VOICEVOX、Storage、Remotion、技術検証 | 実台本＋実素材で5本生成し、人手評価4/5以上。TTS候補と合成方式を決定 |
 | 0b：環境確定 | 未着手 | VOICEVOX単体Docker運用を確認 | Postgres・VOICEVOX・WorkerのCompose化、Text API・単価・規約の記録 |
 | 1：基盤 | 一部完了 | Next.jsのログイン画面、DBユーザー認証、署名セッション、未ログイン拒否、Workspace作成、所有者確認付きブランド一覧・登録API、ブランド設定画面、冪等な初期ユーザー／Workspace seed | CI、日次バックアップ、初回ユーザー作成の実機確認 |
-| 2：台本 | 一部完了 | `VideoPlan`、JSON台本Provider、読み辞書・検証 | Director API、台本保存API、編集画面 |
+| 2：台本 | 一部完了 | `VideoPlan`、JSON台本Provider、読み辞書・検証、動画作成API、fixture Directorによる台本生成・保存API | 外部Director接続、台本編集API・画面、ジョブ化 |
 | 3：素材・音声 | 一部完了 | `StorageProvider`、`AssetProvider`、VOICEVOX、尺計算 | 素材登録・検索、権利情報、原価上限、部分再生成 |
 | 4：動画 | CLI完了・アプリ未着手 | Remotionテンプレート、MP4、ffprobe技術検証、安全域 | Remotion Player、Workerジョブ、プレビューとMP4の一致確認 |
 | 5：運用 | 未着手 | なし | 再試行、失敗回復、ダウンロード、保持期限、30本評価 |
@@ -48,6 +48,7 @@ JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC
 - `apps/web`の認証ユニットテスト2件を追加し、全体テストで実行するよう変更
 - ログイン後の画面にWorkspace作成、Workspace選択、ブランド設定登録、登録済みブランド一覧を追加
 - `pnpm --filter @shortfactory/db db:seed`を追加。`SHORTFACTORY_ADMIN_PASSWORD`を受け取り、既存メールを重複作成せず、Workspaceがなければ1件作成する
+- `POST /api/videos`で所有ブランドに動画レコードを作成し、`POST /api/videos/:id/generate-plan`でfixture Directorの検証済み台本を保存するAPIを追加（外部AI・非同期ジョブは未接続）
 - 最終テスト動画：1080×1920、30fps、H.264、AAC、約28.5秒
 - Phase 0a人手評価：0/5。実素材・実Directorが未接続のため、品質判定はまだ開始しない
 

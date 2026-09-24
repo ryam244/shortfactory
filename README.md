@@ -42,6 +42,7 @@ Directorの検証済みJSONを使う場合は、`SHORTFACTORY_PLAN_FILE=/path/pl
 
 ```bash
 pnpm install
+docker compose up -d voicevox postgres # Phase 0bのローカル依存サービス
 pnpm test            # 契約のテスト
 pnpm typecheck       # 型検査
 pnpm studio          # Remotion Studioでプレビュー（ブラウザが開く。SNSのUIに隠れる範囲を赤で表示）
@@ -55,6 +56,8 @@ pnpm --filter @shortfactory/video evaluation:technical                # 音声�
 pnpm --filter @shortfactory/video evaluation:summary                  # Phase 0aの合格状態を集計
 pnpm --filter @shortfactory/video evaluation:review -- --help          # 人手評価を1本ずつ記録
 ```
+
+`docker-compose.yml`のPostgresはローカル開発用の初期値を使う。公開環境や共有環境では必ず`POSTGRES_PASSWORD`を別途設定する。現時点ではWeb/Worker/DBスキーマは未実装で、動画CLIはホストから実行する。
 
 初回の書き出しでは、RemotionがChrome Headless Shellを自動でダウンロードする。
 別のChromiumを使う場合は `REMOTION_BROWSER_EXECUTABLE` にパスを指定する。

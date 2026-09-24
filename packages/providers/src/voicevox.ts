@@ -57,7 +57,7 @@ async function assertOk(response: Response, operation: string): Promise<void> {
   throw new Error(`VOICEVOX ${operation} failed (${response.status}): ${detail}`);
 }
 
-function parseWavDurationMs(bytes: Uint8Array): number {
+export function parseWavDurationMs(bytes: Uint8Array): number {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   if (bytes.byteLength < 44 || ascii(view, 0, 4) !== "RIFF" || ascii(view, 8, 4) !== "WAVE") {
     throw new Error("VOICEVOXの応答がWAV形式ではありません");

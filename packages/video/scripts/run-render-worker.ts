@@ -3,7 +3,7 @@ import { renderMedia, selectComposition } from "@remotion/renderer";
 import { and, asc, eq } from "drizzle-orm";
 import { brandKitSchema, fixtureVoiceDurationMs, giftAssetKeysFixture, resolveSceneTiming, ttsTextForScene, validateVideoPlan, type VideoPlan } from "@shortfactory/contracts";
 import { createDb, assets, brands, generationJobs, videoOutputs, videos } from "@shortfactory/db";
-import { FixtureVoiceProvider } from "@shortfactory/providers";
+import { FixtureVoiceProvider, parseWavDurationMs } from "@shortfactory/providers";
 import { LocalStorageProvider } from "@shortfactory/storage";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { existsSync } from "node:fs";
@@ -40,7 +40,13 @@ async function runOnce(): Promise<boolean> {
     if (!validation.ok) throw new Error(`plan_invalid:${validation.issues.map((issue) => issue.code).join(",")}`);
     const plan: VideoPlan = validation.plan;
     const voiceProvider = new FixtureVoiceProvider();
+    const ttsAssets = assetRows.filter((asset) => asset.kind === "tts");
     const voiceDurations = await Promise.all(plan.scenes.map(async (scene) => {
+      const sceneTts = ttsAssets.filter((asset) => asset.key.startsWith(`tts_${scene.id.toLowerCase()}_`)).sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+      if (sceneTts) {
+        const bytes = await storage.get(sceneTts.storageKey);
+        return { audio: { bytes, durationMs: parseWavDurationMs(bytes), contentType: "audio/wav" as const }, durationMs: parseWavDurationMs(bytes) };
+      }
       const audio = await voiceProvider.synthesize({ text: ttsTextForScene(scene, brand.readingDict), voiceId: brand.voice.voiceId });
       return { audio, durationMs: audio.durationMs };
     }));

@@ -25,6 +25,7 @@ export default function VideoStudio() {
   const [costSummary, setCostSummary] = useState<CostSummary | null>(null);
   const [renderJob, setRenderJob] = useState<RenderJob | null>(null);
   const [audioUrls, setAudioUrls] = useState<Record<string, string>>({});
+  const [audioDurations, setAudioDurations] = useState<Record<string, number>>({});
   const [previewingScene, setPreviewingScene] = useState<string | null>(null);
 
   useEffect(() => { void loadOptions(); }, []);
@@ -68,9 +69,10 @@ export default function VideoStudio() {
     setError(""); setPreviewingScene(scene.id);
     const response = await fetch("/api/voices/synthesize", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: scene.narration, voiceId: "3", videoId: video?.id, sceneId: scene.id, persist: true }) });
     if (!response.ok) { setError("音声を生成できません。VOICEVOX Engineが起動しているか確認してください。"); setPreviewingScene(null); return; }
-    const body = await response.json() as { asset?: { id: string } };
+    const body = await response.json() as { asset?: { id: string }; durationMs?: number };
     if (!body.asset) { setError("生成音声の保存情報を取得できません。"); setPreviewingScene(null); return; }
     setAudioUrls((current) => ({ ...current, [scene.id]: `/api/assets/${body.asset!.id}/content` }));
+    if (typeof body.durationMs === "number") setAudioDurations((current) => ({ ...current, [scene.id]: body.durationMs! }));
     setPreviewingScene(null);
   }
 
@@ -137,7 +139,7 @@ export default function VideoStudio() {
     <button onClick={createAndGenerate} disabled={busy}>{busy ? "処理中…" : "動画を作成して台本生成"}</button>
     {video && <p>動画ID: {video.id} / version: {video.version}</p>}
     {costSummary && <p>見積原価：¥{costSummary.estimatedJpy}（fixtureは実費0円）</p>}
-    {plan && selectedBrand && <><h3>動画プレビュー</h3><PreviewPlayer plan={plan} brand={selectedBrand.kit} /></>}
+    {plan && selectedBrand && <><h3>動画プレビュー</h3><PreviewPlayer plan={plan} brand={selectedBrand.kit} sceneAudio={audioUrls} sceneAudioDurations={audioDurations} /></>}
     {plan && <div><h3>台本編集</h3><label>タイトル<input value={plan.title} onChange={(event) => setPlan({ ...plan, title: event.target.value })} /></label>
       {plan.scenes.map((scene, index) => <fieldset key={scene.id}><legend>{scene.id} ({scene.role})</legend><label>ナレーション<textarea value={scene.narration} onChange={(event) => updateScene(index, "narration", event.target.value)} /></label><button type="button" onClick={() => void regenerateScene(scene)} disabled={busy}>このシーンを再生成</button><button type="button" onClick={() => void previewVoice(scene)} disabled={previewingScene === scene.id || busy}>{previewingScene === scene.id ? "音声生成中…" : "音声を試聴"}</button>{audioUrls[scene.id] && <audio controls src={audioUrls[scene.id]} /> }<label>字幕<input value={scene.caption} onChange={(event) => updateScene(index, "caption", event.target.value)} /></label></fieldset>)}
       <label>CTA<input value={plan.cta} onChange={(event) => setPlan({ ...plan, cta: event.target.value })} /></label><button onClick={savePlan} disabled={busy}>台本を保存</button><button onClick={() => void enqueueRender()} disabled={busy}>MP4生成ジョブを作成</button>{renderJob && <p>Render job: {renderJob.id} / {renderJob.status}{renderJob.status === "failed" && <> / <button type="button" onClick={() => void retryRenderJob()} disabled={busy}>再実行</button></>}{renderJob.status === "succeeded" && <> / <a href={`/api/videos/${video?.id}/output`}>MP4をダウンロード</a></>}</p>}

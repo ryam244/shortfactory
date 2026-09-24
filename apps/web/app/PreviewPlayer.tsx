@@ -4,14 +4,14 @@ import { Player } from "@remotion/player";
 import { fixtureVoiceDurationMs, resolveSceneTiming, type BrandKit, type VideoPlan } from "@shortfactory/contracts";
 import { YuruAnimeV1, type YuruAnimeProps } from "@shortfactory/video";
 
-export function PreviewPlayer({ plan, brand }: { plan: VideoPlan; brand: BrandKit }) {
-  const timing = resolveSceneTiming(plan.scenes.map((scene) => ({ scene, narrationMs: fixtureVoiceDurationMs(scene.narration) })), plan.fps);
+export function PreviewPlayer({ plan, brand, sceneAudio, sceneAudioDurations }: { plan: VideoPlan; brand: BrandKit; sceneAudio?: Record<string, string>; sceneAudioDurations?: Record<string, number> }) {
+  const timing = resolveSceneTiming(plan.scenes.map((scene) => ({ scene, narrationMs: sceneAudioDurations?.[scene.id] ?? fixtureVoiceDurationMs(scene.narration) })), plan.fps);
   const props: YuruAnimeProps = {
     plan,
     brand,
     sceneFrames: timing.sceneFrames,
     assets: {},
-    sceneAudio: plan.scenes.map(() => null),
+    sceneAudio: plan.scenes.map((scene) => sceneAudio?.[scene.id] ?? null),
     bgmUrl: null,
     showSafeZone: false,
   };

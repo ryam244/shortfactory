@@ -36,7 +36,7 @@ export interface VoiceProvider {
   synthesize(input: VoiceRequest): Promise<GeneratedAudio>;
 }
 
-export { VoicevoxProvider, type VoicevoxProviderOptions } from "./voicevox";
+export { VoicevoxProvider, parseWavDurationMs, type VoicevoxProviderOptions } from "./voicevox";
 
 /** 外部Directorの出力JSONを、同じ契約検証に通して使うローカル実装。 */
 export class JsonTextProvider implements TextProvider {

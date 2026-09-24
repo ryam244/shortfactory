@@ -71,6 +71,16 @@ docker compose up -d web worker
 
 Webは`http://127.0.0.1:3000`、WorkerはPostgresのキューを監視し、MP4と中間ファイルは`shortfactory-storage`ボリュームへ保存する。`docker-compose.yml`の初期パスワードとセッション秘密鍵はローカル確認用なので、公開環境や共有環境では必ず`POSTGRES_PASSWORD`と`SHORTFACTORY_SESSION_SECRET`を別途設定する。
 
+Postgresのバックアップは、`pg_dump`を実行できるホストまたはDBコンテナから次で作成する。既定で直近7世代を残す。生成された`backups/postgres/`はPC外へ同期する。
+
+```bash
+pnpm --filter @shortfactory/db db:backup
+# 別の保存先・保持数を指定する場合
+SHORTFACTORY_BACKUP_DIR=/path/to/off-device-staging \
+SHORTFACTORY_BACKUP_GENERATIONS=7 \
+pnpm --filter @shortfactory/db db:backup
+```
+
 初回の書き出しでは、RemotionがChrome Headless Shellを自動でダウンロードする。
 別のChromiumを使う場合は `REMOTION_BROWSER_EXECUTABLE` にパスを指定する。
 

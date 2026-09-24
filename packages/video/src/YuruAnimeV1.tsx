@@ -23,7 +23,7 @@ export const YuruAnimeV1: React.FC<YuruAnimeProps> = ({
         const audio = sceneAudio[i];
         return (
           <Sequence key={scene.id} name={scene.id} from={starts[i]} durationInFrames={sceneFrames[i]}>
-            <SceneView scene={scene} brand={brand} assets={assets} fadeIn={i > 0} />
+            <SceneView scene={scene} brand={brand} assets={assets} fadeIn={i > 0} sceneDurationInFrames={sceneFrames[i]!} />
             {audio ? <Audio src={audio} /> : null}
           </Sequence>
         );

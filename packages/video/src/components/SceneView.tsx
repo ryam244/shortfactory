@@ -18,6 +18,7 @@ interface SceneViewProps {
   assets: Record<string, string>;
   /** 先頭シーン以外はフェードインする。 */
   fadeIn: boolean;
+  sceneDurationInFrames: number;
 }
 
 const FADE_FRAMES = 6;
@@ -34,13 +35,13 @@ const CHARACTER_AREA = {
 } as const;
 const BOUNCE: Partial<SpringConfig> = { damping: 8, stiffness: 160, mass: 0.8 };
 
-export const SceneView: React.FC<SceneViewProps> = ({ scene, brand, assets, fadeIn }) => {
+export const SceneView: React.FC<SceneViewProps> = ({ scene, brand, assets, fadeIn, sceneDurationInFrames }) => {
   const frame = useCurrentFrame();
-  const { fps, durationInFrames } = useVideoConfig();
+  const { fps } = useVideoConfig();
   const { colors } = brand;
   const { characterKey, expressionKey, backgroundKey, objectKeys } = scene.visual;
 
-  const progress = interpolate(frame, [0, durationInFrames], [0, 1], { extrapolateRight: "clamp" });
+  const progress = interpolate(frame, [0, Math.max(1, sceneDurationInFrames - 1)], [0, 1], { extrapolateRight: "clamp" });
   const opacity = fadeIn ? interpolate(frame, [0, FADE_FRAMES], [0, 1], { extrapolateRight: "clamp" }) : 1;
 
   const backgroundUrl = assets[backgroundKey];
@@ -63,7 +64,7 @@ export const SceneView: React.FC<SceneViewProps> = ({ scene, brand, assets, fade
           display: "flex",
           alignItems: "flex-end",
           justifyContent: "center",
-          transform: characterTransform(scene.motion, frame, fps),
+          transform: `${characterTransform(scene.motion, frame, fps)} translateY(${Math.sin(frame / fps * 2) * 4}px)`,
           transformOrigin: "50% 100%",
         }}
       >
@@ -145,6 +146,6 @@ function characterTransform(motion: Motion, frame: number, fps: number): string 
       return `scale(${interpolate(enter, [0, 1], [0.6, 1])})`;
     }
     default:
-      return "none";
+      return "translateY(0px)";
   }
 }

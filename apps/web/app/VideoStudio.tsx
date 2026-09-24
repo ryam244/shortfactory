@@ -5,11 +5,11 @@ import type { BrandKit, Scene, VideoPlan } from "@shortfactory/contracts";
 import { PreviewPlayer } from "./PreviewPlayer";
 
 type Workspace = { id: string; name: string };
-type Brand = { id: string; workspaceId: string; name: string; kit: BrandKit };
+type Brand = { id: string; workspaceId: string; name: string; kitJson: BrandKit };
 type Video = { id: string; workspaceId: string; brandId: string; topic: string; version: number; status: string; planJson?: Plan | null };
 type Plan = VideoPlan;
 type CostSummary = { estimatedJpy: string; costs: Array<{ provider: string; model: string; unit: string; estimatedJpy: string }> };
-type RenderJob = { id: string; status: string; step: string | null; errorCode?: string | null };
+type RenderJob = { id: string; type: string; status: string; step: string | null; errorCode?: string | null };
 type PreviewAsset = { id: string; key: string; kind: string };
 
 export default function VideoStudio() {
@@ -32,6 +32,23 @@ export default function VideoStudio() {
 
   useEffect(() => { void loadOptions(); }, []);
   useEffect(() => { if (brandId) void loadPreviewAssets(brandId); else setPreviewAssets({}); }, [brandId]);
+  useEffect(() => {
+    if (!video || !renderJob || !['queued', 'running'].includes(renderJob.status)) return;
+    let cancelled = false;
+    const timer = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/videos/${video.id}/render`);
+        if (!response.ok || cancelled) return;
+        const body = await response.json() as { jobs: RenderJob[] };
+        const current = body.jobs.find((job) => job.id === renderJob.id);
+        if (!current || cancelled) return;
+        setRenderJob(current);
+        if (current.status === 'succeeded') setMessage('MP4の生成が完了しました。完成した動画を再生できます。');
+        if (current.status === 'failed') setError('MP4生成に失敗しました。再実行できます。');
+      } catch { /* Keep polling after a transient connection failure. */ }
+    }, 2000);
+    return () => { cancelled = true; clearInterval(timer); };
+  }, [video?.id, renderJob?.id, renderJob?.status]);
 
   async function loadOptions() {
     const [workspaceResponse, brandResponse] = await Promise.all([fetch("/api/workspaces"), fetch("/api/brands")]);
@@ -61,7 +78,7 @@ export default function VideoStudio() {
     if (costsResponse.ok) setCostSummary(await costsResponse.json() as CostSummary);
     if (renderResponse.ok) {
       const renderData = await renderResponse.json() as { jobs: RenderJob[] };
-      const latestRenderJob = renderData.jobs.find((job) => job.id);
+      const latestRenderJob = renderData.jobs.find((job) => job.type === 'render');
       if (latestRenderJob) setRenderJob(latestRenderJob);
     }
     setMessage("保存済みの最新動画を復元しました。");
@@ -137,21 +154,6 @@ export default function VideoStudio() {
     const body = await response.json().catch(() => ({})) as { job?: RenderJob; error?: string };
     if (!response.ok || !body.job) { setError(body.error === "plan_required" ? "先に台本を生成・保存してください。" : "動画生成ジョブを作成できません。"); setBusy(false); return; }
     setRenderJob(body.job); setMessage("動画生成ジョブをキューに追加しました。Workerの完了を待っています。"); setBusy(false);
-    void waitForRenderJob(video.id, body.job.id);
-  }
-
-  async function waitForRenderJob(videoId: string, jobId: string) {
-    for (let attempt = 0; attempt < 60; attempt += 1) {
-      await new Promise((resolve) => setTimeout(resolve, 2_000));
-      const response = await fetch(`/api/videos/${videoId}/render`);
-      if (!response.ok) return;
-      const body = await response.json() as { jobs: RenderJob[] };
-      const job = body.jobs.find((item) => item.id === jobId);
-      if (!job) return;
-      setRenderJob(job);
-      if (job.status === "succeeded") { setMessage("MP4の生成が完了しました。ダウンロードできます。"); return; }
-      if (job.status === "failed" || job.status === "cancelled") { setError(`MP4生成に失敗しました（${job.status}）。`); return; }
-    }
   }
 
   async function retryRenderJob() {
@@ -161,7 +163,6 @@ export default function VideoStudio() {
     const body = await response.json().catch(() => ({})) as { job?: RenderJob; error?: string };
     if (!response.ok || !body.job) { setError(body.error === "job_not_retryable" ? "このジョブは再実行できません。" : "ジョブを再実行できません。"); setBusy(false); return; }
     setRenderJob(body.job); setMessage("動画生成ジョブを再キューしました。"); setBusy(false);
-    void waitForRenderJob(video.id, body.job.id);
   }
 
   const visibleBrands = brands.filter((brand) => brand.workspaceId === workspaceId);
@@ -174,7 +175,7 @@ export default function VideoStudio() {
     <button onClick={createAndGenerate} disabled={busy}>{busy ? "処理中…" : "動画を作成して台本生成"}</button>
     {video && <p>動画ID: {video.id} / version: {video.version}</p>}
     {costSummary && <p>見積原価：¥{costSummary.estimatedJpy}（fixtureは実費0円）</p>}
-    {plan && selectedBrand && <><h3>動画プレビュー</h3><PreviewPlayer plan={plan} brand={selectedBrand.kit} assets={previewAssets} sceneAudio={audioUrls} sceneAudioDurations={audioDurations} /></>}
+    {renderJob?.status === 'succeeded' && video ? <><h3>完成した動画</h3><video key={`${video.id}-${renderJob.id}`} controls playsInline preload="metadata" src={`/api/videos/${video.id}/output`} style={{ width: '100%', maxWidth: 360, aspectRatio: '9 / 16' }} /><p>素材・音声の出所は、ブランドの素材情報で確認できます。</p></> : plan && selectedBrand && <><h3>動画プレビュー</h3><PreviewPlayer plan={plan} brand={selectedBrand.kitJson} assets={previewAssets} sceneAudio={audioUrls} sceneAudioDurations={audioDurations} /></>}
     {plan && <div><h3>台本編集</h3><label>タイトル<input value={plan.title} onChange={(event) => setPlan({ ...plan, title: event.target.value })} /></label>
       {plan.scenes.map((scene, index) => <fieldset key={scene.id}><legend>{scene.id} ({scene.role})</legend><label>ナレーション<textarea value={scene.narration} onChange={(event) => updateScene(index, "narration", event.target.value)} /></label><button type="button" onClick={() => void regenerateScene(scene)} disabled={busy}>このシーンを再生成</button><button type="button" onClick={() => void previewVoice(scene)} disabled={previewingScene === scene.id || busy}>{previewingScene === scene.id ? "音声生成中…" : "音声を試聴"}</button>{audioUrls[scene.id] && <audio controls src={audioUrls[scene.id]} /> }<label>字幕<input value={scene.caption} onChange={(event) => updateScene(index, "caption", event.target.value)} /></label></fieldset>)}
       <label>CTA<input value={plan.cta} onChange={(event) => setPlan({ ...plan, cta: event.target.value })} /></label><button onClick={savePlan} disabled={busy}>台本を保存</button><button onClick={() => void enqueueRender()} disabled={busy}>MP4生成ジョブを作成</button>{renderJob && <p>Render job: {renderJob.id} / {renderJob.status}{renderJob.status === "failed" && <> / <button type="button" onClick={() => void retryRenderJob()} disabled={busy}>再実行</button></>}{renderJob.status === "succeeded" && <> / <a href={`/api/videos/${video?.id}/output`}>MP4をダウンロード</a></>}</p>}

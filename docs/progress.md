@@ -36,6 +36,7 @@ JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC
 - `pipeline:test`で検証用BGMを登録し、BGM込みのMP4（H.264/AAC）を書き出せることを確認
 - `evaluation:review`で、動画ごとの人手評価・読み間違い・修正時間をCLIから保存できるようにした
 - Phase 0bの入口として、VOICEVOXとPostgresの`docker-compose.yml`を追加。Web/Worker/DBスキーマは未実装のため、Phase 0b完了とは扱わない
+- Compose実起動を確認：Postgres `postgres:16-alpine` がhealthy、VOICEVOX `/version` が応答。Worker/Web/DBスキーマは未実装
 - 最終テスト動画：1080×1920、30fps、H.264、AAC、約28.5秒
 - Phase 0a人手評価：0/5。実素材・実Directorが未接続のため、品質判定はまだ開始しない
 

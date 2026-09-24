@@ -26,5 +26,38 @@ services:
       timeout: 5s
       retries: 12
 
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-shortfactory}:${POSTGRES_PASSWORD:-shortfactory-local-only}@postgres:5432/${POSTGRES_DB:-shortfactory}
+      SHORTFACTORY_STORAGE_ROOT: /data/storage
+      SHORTFACTORY_SESSION_SECRET: ${SHORTFACTORY_SESSION_SECRET:-local-only-change-me}
+      NODE_ENV: production
+    volumes:
+      - shortfactory-storage:/data/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["pnpm", "--filter", "@shortfactory/video", "worker:render:watch"]
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-shortfactory}:${POSTGRES_PASSWORD:-shortfactory-local-only}@postgres:5432/${POSTGRES_DB:-shortfactory}
+      SHORTFACTORY_STORAGE_ROOT: /data/storage
+      REMOTION_BROWSER_EXECUTABLE: /usr/bin/chromium
+    volumes:
+      - shortfactory-storage:/data/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   shortfactory-postgres:
+  shortfactory-storage:

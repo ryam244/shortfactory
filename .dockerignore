@@ -1,0 +1,13 @@
+.git
+.DS_Store
+node_modules
+**/node_modules
+.next
+**/.next
+out
+**/out
+storage
+**/storage
+*.tsbuildinfo
+*.log
+coverage

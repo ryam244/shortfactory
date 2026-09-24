@@ -60,7 +60,16 @@ pnpm --filter @shortfactory/video evaluation:summary                  # Phase 0a
 pnpm --filter @shortfactory/video evaluation:review -- --help          # 人手評価を1本ずつ記録
 ```
 
-`docker-compose.yml`のPostgresはローカル開発用の初期値を使う。公開環境や共有環境では必ず`POSTGRES_PASSWORD`を別途設定する。現時点ではWeb/Worker/DBスキーマは未実装で、動画CLIはホストから実行する。
+ComposeでWeb・Workerまで起動する場合は、マイグレーションとseedを一度実行してから以下を使う。
+
+```bash
+docker compose build web worker
+docker compose run --rm web pnpm --filter @shortfactory/db db:migrate
+docker compose run --rm -e SHORTFACTORY_ADMIN_PASSWORD='12文字以上の初期パスワード' web pnpm --filter @shortfactory/db db:seed
+docker compose up -d web worker
+```
+
+Webは`http://127.0.0.1:3000`、WorkerはPostgresのキューを監視し、MP4と中間ファイルは`shortfactory-storage`ボリュームへ保存する。`docker-compose.yml`の初期パスワードとセッション秘密鍵はローカル確認用なので、公開環境や共有環境では必ず`POSTGRES_PASSWORD`と`SHORTFACTORY_SESSION_SECRET`を別途設定する。
 
 初回の書き出しでは、RemotionがChrome Headless Shellを自動でダウンロードする。
 別のChromiumを使う場合は `REMOTION_BROWSER_EXECUTABLE` にパスを指定する。

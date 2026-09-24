@@ -37,7 +37,7 @@ export async function POST(request: Request) {
   const storage = getStorage();
   try {
     await storage.put(storageKey, new Uint8Array(await file.arrayBuffer()), file.type);
-    const asset = await createAssetRepository(db).create({ workspaceId, brandId, key, kind, storageKey, source, rightsNote });
+    const asset = await createAssetRepository(db).create({ workspaceId, brandId, key, kind, contentType: file.type, storageKey, source, rightsNote });
     return NextResponse.json({ asset }, { status: 201 });
   } catch (error) {
     await storage.delete(storageKey).catch(() => undefined);

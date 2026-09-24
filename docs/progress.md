@@ -1,11 +1,11 @@
 # Short Factory 進行表
 
-最終更新：2026-09-24 17:55 JST
+最終更新：2026-09-24 18:59 JST
 基準文書：[master-plan.md](./master-plan.md)
 
 ## 現在地
 
-**Phase 1の認証・所有者確認APIまで進行。Phase 0aの品質判定とPhase 1の画面・運用は未完了。**
+**Phase 3の素材アップロード基盤まで進行。Phase 0aの品質判定、Phase 0bのWeb/Worker統合、Phase 3の音声UI・原価制御は未完了。**
 
 JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC上で1080×1920のMP4を1コマンド生成できる。現在のテストデータは動作確認用であり、実ブランドの品質合格とは扱わない。
 
@@ -18,14 +18,14 @@ JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC
 | 0b：環境確定 | 未着手 | VOICEVOX単体Docker運用を確認 | Postgres・VOICEVOX・WorkerのCompose化、Text API・単価・規約の記録 |
 | 1：基盤 | 一部完了 | Next.jsのログイン画面、DBユーザー認証、署名セッション、未ログイン拒否、Workspace作成、所有者確認付きブランド一覧・登録API、ブランド設定画面、冪等な初期ユーザー／Workspace seed | CI、日次バックアップ、初回ユーザー作成の実機確認 |
 | 2：台本 | 一部完了 | `VideoPlan`、JSON台本Provider、読み辞書・検証、動画作成API、fixture Directorによる台本生成・保存API、version照合付き台本編集API、最小台本編集画面 | 外部Director接続、UIの実機操作確認、ジョブ化 |
-| 3：素材・音声 | 一部完了 | `StorageProvider`、`AssetProvider`、VOICEVOX、尺計算、素材メタデータ登録・一覧API、ローカルStorageへのファイルアップロード・所有者付き配信API | 素材検索UI、権利情報画面、原価上限、部分再生成、TTS画面接続 |
+| 3：素材・音声 | 一部完了 | `StorageProvider`、`AssetProvider`、VOICEVOX、尺計算、素材メタデータ登録・一覧API、ローカルStorageへのファイルアップロード・所有者付き配信API、アップロードMIMEタイプ保存・配信 | 素材検索UI、権利情報画面、原価上限、部分再生成、TTS画面接続 |
 | 4：動画 | CLI完了・アプリ未着手 | Remotionテンプレート、MP4、ffprobe技術検証、安全域 | Remotion Player、Workerジョブ、プレビューとMP4の一致確認 |
 | 5：運用 | 未着手 | なし | 再試行、失敗回復、ダウンロード、保持期限、30本評価 |
 | 6：クラウド | 保留 | なし | 30本評価合格後に必要性を判断 |
 
 ## 検証済みの事実
 
-- `pnpm test`：contracts 11件、providers 6件、storage 3件、assets 2件が成功
+- `pnpm test`：全ワークスペースのテストが成功（contracts 11件、providers 6件、storage 3件、assets 3件、auth 4件、db 3件、web 2件）
 - `pnpm typecheck`：全パッケージ成功
 - VOICEVOX実音声5本の技術検証：5/5
 - ローカルテストランナー：JSON台本＋登録SVG素材＋VOICEVOX＋Remotion MP4を成功
@@ -53,6 +53,7 @@ JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC
 - ログイン後画面に動画テストStudioを追加。Workspace・ブランド・テーマからfixture台本を生成し、タイトル・ナレーション・字幕・CTAを編集して保存できる
 - `POST/GET /api/assets`を追加。素材キー、種類、Storageキー、出所、利用権情報を必須にし、ブランド所有者だけが登録・一覧取得できる
 - `POST /api/assets/upload`と`GET /api/assets/:id/content`を追加。10MB以下の画像・音声・動画をローカルStorageへ保存し、DB登録失敗時は保存ファイルを削除する
+- assetsに`contentType`を保存するmigrationを追加。アップロードした画像・音声・動画を元のMIMEタイプで配信し、既存行は`application/octet-stream`で補完する
 - 最終テスト動画：1080×1920、30fps、H.264、AAC、約28.5秒
 - Phase 0a人手評価：0/5。実素材・実Directorが未接続のため、品質判定はまだ開始しない
 

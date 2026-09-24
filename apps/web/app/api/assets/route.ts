@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     if (!ownedBrand) return NextResponse.json({ error: "brand_forbidden" }, { status: 403 });
     const asset = await createAssetRepository(db).create({
       workspaceId: input.workspaceId as string, brandId: input.brandId as string, key: input.key as string,
-      kind: input.kind as string, storageKey: input.storageKey as string, source: input.source as string,
+      kind: input.kind as string, contentType: typeof input.contentType === "string" ? input.contentType : "application/octet-stream", storageKey: input.storageKey as string, source: input.source as string,
       rightsNote: input.rightsNote as string, parentAssetId: typeof input.parentAssetId === "string" ? input.parentAssetId : undefined,
     });
     return NextResponse.json({ asset }, { status: 201 });

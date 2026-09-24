@@ -19,7 +19,7 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
       .where(and(eq(assets.id, id), eq(workspaces.ownerUserId, session.subject))).limit(1);
     if (!row) return NextResponse.json({ error: "asset_not_found" }, { status: 404 });
     const bytes = await getStorage().get(row.asset.storageKey);
-    return new Response(bytes.buffer as ArrayBuffer, { headers: { "Content-Type": "application/octet-stream", "Cache-Control": "private, max-age=60" } });
+    return new Response(bytes.buffer as ArrayBuffer, { headers: { "Content-Type": row.asset.contentType, "Cache-Control": "private, max-age=60" } });
   } catch (error) {
     console.error("asset content failed", error);
     return NextResponse.json({ error: "asset_unavailable" }, { status: 404 });

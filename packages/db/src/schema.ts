@@ -22,7 +22,7 @@ export const videos = pgTable("videos", {
 });
 export const assets = pgTable("assets", {
   id: uuid().defaultRandom().primaryKey(), workspaceId: uuid("workspace_id").notNull().references(() => workspaces.id), brandId: uuid("brand_id").notNull().references(() => brands.id),
-  key: text().notNull(), kind: text().notNull(), storageKey: text("storage_key").notNull(), parentAssetId: uuid("parent_asset_id"), rightsNote: text("rights_note").notNull(), source: text().notNull(), createdAt: createdAt(),
+  key: text().notNull(), kind: text().notNull(), contentType: text("content_type").notNull(), storageKey: text("storage_key").notNull(), parentAssetId: uuid("parent_asset_id"), rightsNote: text("rights_note").notNull(), source: text().notNull(), createdAt: createdAt(),
 }, (table) => [unique("assets_brand_key_unique").on(table.brandId, table.key)]);
 export const generationJobs = pgTable("generation_jobs", {
   id: uuid().defaultRandom().primaryKey(), videoId: uuid("video_id").notNull().references(() => videos.id), videoVersion: integer("video_version").notNull(), type: generationJobType().notNull(),

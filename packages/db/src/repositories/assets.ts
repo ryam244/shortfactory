@@ -9,6 +9,7 @@ export function createAssetRepository(db: ShortFactoryDb) {
       brandId: string;
       key: string;
       kind: string;
+      contentType: string;
       storageKey: string;
       source: string;
       rightsNote: string;
@@ -19,12 +20,13 @@ export function createAssetRepository(db: ShortFactoryDb) {
         brandId: input.brandId,
         key: input.key.trim(),
         kind: input.kind.trim(),
+        contentType: input.contentType.trim(),
         storageKey: input.storageKey.trim(),
         source: input.source.trim(),
         rightsNote: input.rightsNote.trim(),
         parentAssetId: input.parentAssetId,
       };
-      if (!values.key || !values.kind || !values.storageKey || !values.source || !values.rightsNote) throw new Error("asset metadata is required");
+      if (!values.key || !values.kind || !values.contentType || !values.storageKey || !values.source || !values.rightsNote) throw new Error("asset metadata is required");
       const [asset] = await db.insert(assets).values(values).returning();
       return asset!;
     },

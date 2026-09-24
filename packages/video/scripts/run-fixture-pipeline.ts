@@ -12,6 +12,7 @@ import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { COMPOSITION_ID, type YuruAnimeProps } from "../src/props";
+import type { GenerationSources } from "./lib/evaluation";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const outputDir = path.resolve(here, "../out", process.env.SHORTFACTORY_OUTPUT_DIR ?? "fixture-pipeline");
@@ -47,6 +48,14 @@ if (timing.outOfRange) throw new Error(`生成計画の総尺が範囲外です:
 
 const storage = new LocalStorageProvider(path.join(outputDir, "storage", outputName));
 await storage.put(`plans/${outputName}.json`, new TextEncoder().encode(JSON.stringify(plan, null, 2)), "application/json");
+// 評価時に「何で作った動画か」を判別できるよう、使った実装を記録する
+const sources: GenerationSources = {
+  text: "fixture",
+  voice: process.env.SHORTFACTORY_VOICE_PROVIDER === "voicevox" ? "voicevox" : "fixture",
+  voiceId,
+  assets: "placeholder",
+};
+await storage.put("run.json", new TextEncoder().encode(JSON.stringify({ topic, sources }, null, 2)), "application/json");
 await Promise.all(
   voiceDurations.map(async ({ text, durationMs, bytes }, index) => {
     const key = `voice/scene-${String(index + 1).padStart(2, "0")}`;

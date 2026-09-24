@@ -22,6 +22,10 @@ VOICEVOX Engineを起動した環境では、`SHORTFACTORY_VOICE_PROVIDER=voicev
 
 `pipeline:fixture:batch` はPhase 0aの5本評価用に、テーマごとに別MP4・計画JSON・音声メタデータを生成する。固定fixtureの通過確認であり、自然音声や実素材の品質評価ではない。
 
+生成時に使った台本・音声・素材の種類を `storage/<id>/run.json` に記録する。`evaluation:summary` は、台本・音声・素材がすべて実物の動画だけをPhase 0aの判定対象にし、fixtureや仮素材を含む場合は「判定対象外（配線の確認のみ）」と表示する。合格には、判定対象の5本で技術検証が全件合格し、人手評価で4本以上が `postable_with_minor_edits` であることが必要。
+
+`evaluation:manifest` は再実行しても、記入済みの人手評価（`review`）を引き継ぐ。技術検証は解像度・30fps・H.264・AACの音声トラック・シーン音声・尺の誤差（150ms以内）を確認する。ffprobeはシステムにあればそれを使い、なければRemotion同梱のものを使うので、追加のインストールは不要。
+
 実VOICEVOXで5本作る場合は、`SHORTFACTORY_OUTPUT_DIR=voicevox-batch SHORTFACTORY_VOICE_PROVIDER=voicevox VOICEVOX_SPEAKER=2 pnpm --filter @shortfactory/video pipeline:fixture:batch` を使う。評価コマンドにも同じ`SHORTFACTORY_OUTPUT_DIR=voicevox-batch`を指定する。
 
 ## Mac miniでの実行

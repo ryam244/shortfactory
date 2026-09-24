@@ -2,12 +2,12 @@
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { batchDirFromEnv, EVALUATION_TOPICS, evaluationItemId } from "./lib/evaluation";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const topics = ["春の手土産", "職場へのお菓子", "引っ越し祝い", "北海道のおみやげ", "誕生日ギフト"];
 
-for (const [index, topic] of topics.entries()) {
-  const name = `gift-${String(index + 1).padStart(2, "0")}`;
+for (const [index, topic] of EVALUATION_TOPICS.entries()) {
+  const name = evaluationItemId(index);
   console.log(`\n=== ${name}: ${topic} ===`);
   const result = spawnSync(
     process.env.npm_execpath ?? "pnpm",
@@ -25,4 +25,4 @@ for (const [index, topic] of topics.entries()) {
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 
-console.log(`\n完了: ${topics.length}本を packages/video/out/fixture-batch/ に保存しました`);
+console.log(`\n完了: ${EVALUATION_TOPICS.length}本を ${batchDirFromEnv()} に保存しました`);

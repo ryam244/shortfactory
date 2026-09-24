@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 
 type Workspace = { id: string; name: string };
 type Brand = { id: string; workspaceId: string; name: string };
+type Asset = { id: string; key: string; kind: string; source: string; rightsNote: string };
 
 const initialForm = {
   name: "", style: "淡い手描き風", tone: "親しみやすく短く", cta: "保存してあとで見返してね",
@@ -19,6 +20,13 @@ export default function BrandSettings() {
   const [form, setForm] = useState(initialForm);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [assetBrandId, setAssetBrandId] = useState("");
+  const [assetKey, setAssetKey] = useState("");
+  const [assetKind, setAssetKind] = useState("background");
+  const [assetSource, setAssetSource] = useState("");
+  const [assetRightsNote, setAssetRightsNote] = useState("");
+  const [assetFile, setAssetFile] = useState<File | null>(null);
+  const [assets, setAssets] = useState<Asset[]>([]);
 
   useEffect(() => { void load(); }, []);
 
@@ -29,6 +37,14 @@ export default function BrandSettings() {
     const brandData = await brandResponse.json() as { brands: Brand[] };
     setWorkspaces(workspaceData.workspaces); setBrands(brandData.brands);
     if (!workspaceId && workspaceData.workspaces[0]) setWorkspaceId(workspaceData.workspaces[0].id);
+    if (!assetBrandId && brandData.brands[0]) setAssetBrandId(brandData.brands[0].id);
+  }
+
+  useEffect(() => { if (assetBrandId) void loadAssets(assetBrandId); }, [assetBrandId]);
+
+  async function loadAssets(brandId: string) {
+    const response = await fetch(`/api/assets?brandId=${encodeURIComponent(brandId)}`);
+    if (response.ok) setAssets((await response.json() as { assets: Asset[] }).assets);
   }
 
   async function createWorkspace(event: FormEvent<HTMLFormElement>) {
@@ -52,10 +68,22 @@ export default function BrandSettings() {
     setMessage("ブランドを登録しました。"); setForm(initialForm); await load();
   }
 
+  async function uploadAsset(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setError(""); setMessage("");
+    if (!workspaceId || !assetBrandId || !assetFile) { setError("Workspace、ブランド、ファイルを指定してください。"); return; }
+    const body = new FormData();
+    body.set("workspaceId", workspaceId); body.set("brandId", assetBrandId); body.set("key", assetKey);
+    body.set("kind", assetKind); body.set("source", assetSource); body.set("rightsNote", assetRightsNote); body.set("file", assetFile);
+    const response = await fetch("/api/assets/upload", { method: "POST", body });
+    if (!response.ok) { setError("素材を登録できません。キー・権利情報・ファイル形式を確認してください。"); return; }
+    setMessage("素材を登録しました。"); setAssetKey(""); setAssetSource(""); setAssetRightsNote(""); setAssetFile(null);
+    await loadAssets(assetBrandId);
+  }
+
   return <section>
     <h2>Workspace</h2>
     <form onSubmit={createWorkspace}><input aria-label="Workspace名" value={workspaceName} onChange={(event) => setWorkspaceName(event.target.value)} placeholder="例：自社SNS" required /><button>作成</button></form>
-    <label>登録先Workspace<select value={workspaceId} onChange={(event) => setWorkspaceId(event.target.value)}><option value="">選択してください</option>{workspaces.map((workspace) => <option key={workspace.id} value={workspace.id}>{workspace.name}</option>)}</select></label>
+    <label>登録先Workspace<select value={workspaceId} onChange={(event) => { setWorkspaceId(event.target.value); setAssetBrandId(""); }}><option value="">選択してください</option>{workspaces.map((workspace) => <option key={workspace.id} value={workspace.id}>{workspace.name}</option>)}</select></label>
     <h2>ブランド登録</h2>
     <form onSubmit={createBrand}>
       <label>ブランド名<input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required /></label>
@@ -69,5 +97,16 @@ export default function BrandSettings() {
     </form>
     {message && <p role="status">{message}</p>}{error && <p role="alert">{error}</p>}
     <h2>登録済みブランド</h2><ul>{brands.map((brand) => <li key={brand.id}>{brand.name}</li>)}</ul>
+    <h2>素材登録</h2>
+    <form onSubmit={uploadAsset}>
+      <label>ブランド<select value={assetBrandId} onChange={(event) => setAssetBrandId(event.target.value)}><option value="">選択してください</option>{brands.filter((brand) => brand.workspaceId === workspaceId).map((brand) => <option key={brand.id} value={brand.id}>{brand.name}</option>)}</select></label>
+      <label>素材キー<input value={assetKey} onChange={(event) => setAssetKey(event.target.value)} placeholder="character_01" required pattern="[a-z0-9][a-z0-9_]*" /></label>
+      <label>種類<input value={assetKind} onChange={(event) => setAssetKind(event.target.value)} required /></label>
+      <label>出所<input value={assetSource} onChange={(event) => setAssetSource(event.target.value)} placeholder="自作、購入元URLなど" required /></label>
+      <label>利用権情報<input value={assetRightsNote} onChange={(event) => setAssetRightsNote(event.target.value)} placeholder="商用利用可、ライセンス名など" required /></label>
+      <label>ファイル<input type="file" accept="image/*,audio/*,video/*" onChange={(event) => setAssetFile(event.target.files?.[0] ?? null)} required /></label>
+      <button type="submit">素材を登録</button>
+    </form>
+    {assets.length > 0 && <><h3>登録済み素材</h3><ul>{assets.map((asset) => <li key={asset.id}><a href={`/api/assets/${asset.id}/content`} target="_blank" rel="noreferrer">{asset.key}</a>（{asset.kind} / {asset.source}）</li>)}</ul></>}
   </section>;
 }

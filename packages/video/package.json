@@ -21,6 +21,7 @@
     "render:sample": "tsx scripts/render-sample.ts",
     "worker:render": "tsx scripts/run-render-worker.ts",
     "worker:render:watch": "tsx scripts/run-render-worker.ts --watch",
+    "verify:render": "tsx scripts/verify-render-output.ts",
     "typecheck": "tsc -p tsconfig.json",
     "test": "echo \"no tests yet\""
   },

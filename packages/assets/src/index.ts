@@ -8,6 +8,8 @@ export interface AssetProvider {
 export interface LocalAssetDescriptor {
   path: string;
   contentType: string;
+  source: string;
+  rightsNote: string;
 }
 
 export type LocalAssetManifest = Record<string, LocalAssetDescriptor>;
@@ -37,6 +39,9 @@ export class LocalAssetProvider implements AssetProvider {
       }
       if (!descriptor.contentType || descriptor.contentType.includes("\n") || descriptor.contentType.includes("\r")) {
         throw new Error(`invalid asset content type: ${key}`);
+      }
+      if (!descriptor.source.trim() || !descriptor.rightsNote.trim()) {
+        throw new Error(`asset rights metadata is required: ${key}`);
       }
       const bytes = await readFile(filePath);
       result[key] = `data:${descriptor.contentType};base64,${bytes.toString("base64")}`;

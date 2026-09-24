@@ -39,7 +39,12 @@ for (const [key, color] of assets) {
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920"><rect width="1080" height="1920" fill="${color}"/><circle cx="540" cy="760" r="260" fill="#ffffff" fill-opacity=".55"/><text x="540" y="1040" text-anchor="middle" font-family="sans-serif" font-size="54" fill="#4A3B36">${label}</text></svg>\n`,
     "utf8",
   );
-  manifest[key] = { path: relativePath, contentType: "image/svg+xml" };
+  manifest[key] = {
+    path: relativePath,
+    contentType: "image/svg+xml",
+    source: "shortfactory-local-test",
+    rightsNote: "テスト運用専用の自動生成SVG。公開・商用利用の素材判定には使わない",
+  };
 }
 await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
 await writeFile(planPath, `${JSON.stringify(giftPlanFixture, null, 2)}\n`, "utf8");
@@ -54,6 +59,7 @@ const result = spawnSync(command, ["exec", "tsx", path.join(here, "run-fixture-p
     SHORTFACTORY_PLAN_FILE: planPath,
     SHORTFACTORY_ASSET_MANIFEST: manifestPath,
     SHORTFACTORY_ASSET_ROOT: assetRoot,
+    SHORTFACTORY_TEST_MODE: "1",
     SHORTFACTORY_VOICE_PROVIDER: process.env.SHORTFACTORY_VOICE_PROVIDER ?? "fixture",
   },
 });

@@ -22,15 +22,17 @@ export function batchDirFromEnv(): string {
  * Phase 0aの品質判定（マスタープラン§9）には使えない。
  */
 export interface GenerationSources {
-  text: "fixture" | string;
-  voice: "fixture" | "voicevox" | string;
+  text: "fixture" | "test" | string;
+  voice: "fixture" | "test" | "voicevox" | string;
   voiceId: string;
-  assets: "placeholder" | "registered";
+  assets: "placeholder" | "test" | "registered";
 }
 
 /** Phase 0aの品質判定に使えるか。台本・音声・素材のすべてが実物である必要がある。 */
 export function isQualityEvaluable(sources: GenerationSources): boolean {
-  return sources.text !== "fixture" && sources.voice !== "fixture" && sources.assets !== "placeholder";
+  return ![sources.text, sources.voice, sources.assets].includes("fixture")
+    && ![sources.text, sources.voice, sources.assets].includes("test")
+    && sources.assets !== "placeholder";
 }
 
 export const FIXTURE_SOURCES: GenerationSources = { text: "fixture", voice: "fixture", voiceId: "fixture", assets: "placeholder" };

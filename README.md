@@ -24,7 +24,7 @@ VOICEVOX Engineを起動した環境では、`SHORTFACTORY_VOICE_PROVIDER=voicev
 
 `pipeline:fixture:batch` はPhase 0aの5本評価用に、テーマごとに別MP4・計画JSON・音声メタデータを生成する。固定fixtureの通過確認であり、自然音声や実素材の品質評価ではない。
 
-ローカル素材を登録して描画する場合は、asset keyをキーにしたJSONマニフェストを用意し、`SHORTFACTORY_ASSET_MANIFEST=/path/assets.json SHORTFACTORY_ASSET_ROOT=/path/assets pnpm --filter @shortfactory/video pipeline:fixture -- "春の手土産"` を実行する。各値は `{ "path": "相対パス", "contentType": "image/png" }` 形式で、パスはAssetProviderのroot外へ出られない。素材が登録されると、生成記録の`assets`が`registered`になる。
+ローカル素材を登録して描画する場合は、asset keyをキーにしたJSONマニフェストを用意し、`SHORTFACTORY_ASSET_MANIFEST=/path/assets.json SHORTFACTORY_ASSET_ROOT=/path/assets pnpm --filter @shortfactory/video pipeline:fixture -- "春の手土産"` を実行する。各値は`{ "path": "相対パス", "contentType": "image/png", "source": "制作元", "rightsNote": "利用条件" }`形式で、パスはAssetProviderのroot外へ出られない。素材が登録されると、生成記録の`assets`が`registered`になる。
 
 Directorの検証済みJSONを使う場合は、`SHORTFACTORY_PLAN_FILE=/path/plan.json` を追加する。JSONは`VideoPlan`として同じ契約検証を通り、無効な台本はレンダリング前に停止する。生成記録の`text`は`json`になる。
 

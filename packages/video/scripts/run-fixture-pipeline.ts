@@ -19,6 +19,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const outputDir = path.resolve(here, "../out", process.env.SHORTFACTORY_OUTPUT_DIR ?? "fixture-pipeline");
 const outputName = process.env.SHORTFACTORY_OUTPUT_NAME ?? "gift-sample";
 const assetManifestPath = process.env.SHORTFACTORY_ASSET_MANIFEST;
+const testMode = process.env.SHORTFACTORY_TEST_MODE === "1";
 const assetManifest = assetManifestPath
   ? JSON.parse(await readFile(assetManifestPath, "utf8")) as LocalAssetManifest
   : null;
@@ -71,10 +72,10 @@ const storage = new LocalStorageProvider(path.join(outputDir, "storage", outputN
 await storage.put(`plans/${outputName}.json`, new TextEncoder().encode(JSON.stringify(plan, null, 2)), "application/json");
 // 評価時に「何で作った動画か」を判別できるよう、使った実装を記録する
 const sources: GenerationSources = {
-  text: process.env.SHORTFACTORY_PLAN_FILE ? "json" : "fixture",
-  voice: process.env.SHORTFACTORY_VOICE_PROVIDER === "voicevox" ? "voicevox" : "fixture",
+  text: testMode ? "test" : process.env.SHORTFACTORY_PLAN_FILE ? "json" : "fixture",
+  voice: testMode ? "test" : process.env.SHORTFACTORY_VOICE_PROVIDER === "voicevox" ? "voicevox" : "fixture",
   voiceId,
-  assets: assetManifestPath ? "registered" : "placeholder",
+  assets: testMode ? "test" : assetManifestPath ? "registered" : "placeholder",
 };
 await storage.put("run.json", new TextEncoder().encode(JSON.stringify({ topic, sources }, null, 2)), "application/json");
 await Promise.all(

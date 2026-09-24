@@ -105,6 +105,9 @@ importers:
       '@shortfactory/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@shortfactory/storage':
+        specifier: workspace:*
+        version: link:../storage
       drizzle-orm:
         specifier: ^0.44.7
         version: 0.44.7(@types/pg@8.23.1)(pg@8.23.0)

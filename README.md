@@ -45,6 +45,7 @@ pnpm install
 docker compose up -d voicevox postgres # Phase 0bのローカル依存サービス
 pnpm --filter @shortfactory/db db:migrate # PostgresへDrizzleマイグレーションを適用
 SHORTFACTORY_ADMIN_PASSWORD='12文字以上の初期パスワード' pnpm --filter @shortfactory/db db:seed # 初期ユーザーとWorkspaceを作成
+pnpm --filter @shortfactory/db db:seed:demo # デモブランドと仮素材を登録
 pnpm --filter @shortfactory/web dev # ログイン画面とログインAPIを含むWeb開発サーバー
 pnpm test            # 契約のテスト
 pnpm typecheck       # 型検査

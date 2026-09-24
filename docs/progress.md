@@ -1,6 +1,6 @@
 # Short Factory 進行表
 
-最終更新：2026-09-25 00:32 JST
+最終更新：2026-09-25 01:05 JST
 基準文書：[master-plan.md](./master-plan.md)
 
 ## 現在地
@@ -75,6 +75,7 @@ JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC
 - `.github/workflows/ci.yml`を追加。Node.js 22・pnpmで依存インストール、全体テスト、全体型チェック、WebビルドをPull Requestとmain/master pushで実行する
 - `GET /api/health`を追加し、DBの`select 1`まで成功した場合だけ200を返すようにした。ComposeのWeb healthcheckから利用する
 - Docker Desktop復旧後、Postgresコンテナが一度healthyになり、`db:migrate`が成功。Web/Workerビルドはpnpm有効化を修正したが、Docker内部の`metadata_v2.db`書き込みI/Oエラーで未完了。Chromium apt依存を外し、Remotionのbrowser ensureで取得する軽量構成へ変更。VOICEVOXは既存コンテナとの50021番ポート競合もあるため、既存サービスを確認してから起動する
+- `db:seed:demo`を追加し、既存Workspaceへ「デモギフト」ブランドとfixture仮SVG素材10点を冪等に登録できるようにした。実素材・公開・商用利用の判定には使わない
 - `fixtureVoiceDurationMs`を契約層へ追加し、Preview・Worker・FixtureVoiceProviderが同じ音声尺からシーンフレームを計算するよう統一
 - 保存済み`tts_scene_XX_*`素材がある場合は、実測WAV尺と音声データをPreview・Workerで利用。未生成シーンはfixtureへフォールバックする
 - Video Studioが選択ブランドの登録素材を取得し、認証済みcontent URLをPreviewへ渡す。未登録キーは既存のプレースホルダー描画を使う

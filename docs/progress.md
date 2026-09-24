@@ -39,6 +39,7 @@ JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC
 - Compose実起動を確認：Postgres `postgres:16-alpine` がhealthy、VOICEVOX `/version` が応答。Worker/Web/DBスキーマは未実装
 - `packages/db`にDrizzleスキーマと初期マイグレーションを追加し、Postgresへ適用。8テーブルを確認
 - Drizzle接続クライアントと、`BrandKit`を検証して保存するブランドRepositoryを追加
+- ユーザー・ワークスペースRepositoryを追加。メール正規化とパスワードハッシュ必須の入口を実装（認証画面・セッションは未実装）
 - 最終テスト動画：1080×1920、30fps、H.264、AAC、約28.5秒
 - Phase 0a人手評価：0/5。実素材・実Directorが未接続のため、品質判定はまだ開始しない
 

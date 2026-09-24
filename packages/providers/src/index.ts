@@ -6,6 +6,7 @@ import {
   validateVideoPlan,
   type BrandKit,
   type VideoPlan,
+  type VideoPlanInput,
 } from "@shortfactory/contracts";
 
 export interface DirectorInput {
@@ -35,6 +36,22 @@ export interface VoiceProvider {
 }
 
 export { VoicevoxProvider, type VoicevoxProviderOptions } from "./voicevox";
+
+/** 外部Directorの出力JSONを、同じ契約検証に通して使うローカル実装。 */
+export class JsonTextProvider implements TextProvider {
+  constructor(private readonly rawPlan: VideoPlanInput) {}
+
+  async generatePlan(input: DirectorInput): Promise<VideoPlan> {
+    const result = validateVideoPlan(this.rawPlan, {
+      brand: input.brand,
+      availableAssetKeys: input.availableAssetKeys,
+    });
+    if (!result.ok) {
+      throw new Error(`JSON plan is invalid: ${result.issues.map((issue) => `${issue.path} ${issue.message}`).join(" / ")}`);
+    }
+    return result.plan;
+  }
+}
 
 /** 外部APIなしでDirectorの入出力契約を検証するfixture。 */
 export class FixtureTextProvider implements TextProvider {

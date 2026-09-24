@@ -6,8 +6,8 @@
 import { bundle } from "@remotion/bundler";
 import { renderMedia, selectComposition } from "@remotion/renderer";
 import { LocalAssetProvider, type LocalAssetManifest } from "@shortfactory/assets";
-import { resolveSceneTiming, ttsTextForScene } from "@shortfactory/contracts";
-import { createGiftFixtureProviders, VoicevoxProvider } from "@shortfactory/providers";
+import { resolveSceneTiming, ttsTextForScene, type VideoPlanInput } from "@shortfactory/contracts";
+import { createGiftFixtureProviders, JsonTextProvider, VoicevoxProvider } from "@shortfactory/providers";
 import { LocalStorageProvider } from "@shortfactory/storage";
 import { mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
@@ -26,11 +26,14 @@ const topic = (cliArgs[0] === "--" ? cliArgs.slice(1) : cliArgs).join(" ").trim(
 let lastReportedProgress = -1;
 
 const fixtureProviders = createGiftFixtureProviders();
+const textProvider = process.env.SHORTFACTORY_PLAN_FILE
+  ? new JsonTextProvider(JSON.parse(await readFile(process.env.SHORTFACTORY_PLAN_FILE, "utf8")) as VideoPlanInput)
+  : fixtureProviders.text;
 const voiceProvider = process.env.SHORTFACTORY_VOICE_PROVIDER === "voicevox"
   ? new VoicevoxProvider()
   : fixtureProviders.voice;
 const voiceId = process.env.VOICEVOX_SPEAKER ?? fixtureProviders.brand.voice.voiceId;
-const plan = await fixtureProviders.text.generatePlan({
+const plan = await textProvider.generatePlan({
   topic,
   brand: fixtureProviders.brand,
   availableAssetKeys: fixtureProviders.assetKeys,
@@ -65,7 +68,7 @@ const storage = new LocalStorageProvider(path.join(outputDir, "storage", outputN
 await storage.put(`plans/${outputName}.json`, new TextEncoder().encode(JSON.stringify(plan, null, 2)), "application/json");
 // 評価時に「何で作った動画か」を判別できるよう、使った実装を記録する
 const sources: GenerationSources = {
-  text: "fixture",
+  text: process.env.SHORTFACTORY_PLAN_FILE ? "json" : "fixture",
   voice: process.env.SHORTFACTORY_VOICE_PROVIDER === "voicevox" ? "voicevox" : "fixture",
   voiceId,
   assets: assetManifestPath ? "registered" : "placeholder",

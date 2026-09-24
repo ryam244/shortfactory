@@ -2,7 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { assertGenerationBudget, brandKitSchema, GenerationBudgetExceededError, giftAssetKeysFixture } from "@shortfactory/contracts";
 import { FixtureTextProvider } from "@shortfactory/providers";
-import { brands, createVideoRepository, videos, workspaces } from "@shortfactory/db";
+import { brands, createGenerationRepository, createVideoRepository, videos, workspaces } from "@shortfactory/db";
 import { getDb } from "../../../../../lib/db";
 import { getRequestSession } from "../../../../../lib/session";
 
@@ -45,7 +45,10 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     });
     plan.brandId = row.brand.id;
     const savedVideo = await createVideoRepository(db).savePlan(id, plan);
-    return NextResponse.json({ video: savedVideo, plan, provider: "fixture" });
+    if (!savedVideo) return NextResponse.json({ error: "video_not_found" }, { status: 404 });
+    const job = await createGenerationRepository(db).createSucceededJob({ videoId: id, videoVersion: savedVideo.version, type: "generate_plan" });
+    const cost = await createGenerationRepository(db).recordEstimatedCost({ jobId: job.id, provider: "fixture", model: "fixture-director", unit: "plan", quantity: "1", estimatedJpy: "0" });
+    return NextResponse.json({ video: savedVideo, plan, provider: "fixture", cost });
   } catch (error) {
     console.error("plan generation failed", error);
     return NextResponse.json({ error: "plan_generation_failed" }, { status: 400 });

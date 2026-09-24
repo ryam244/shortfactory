@@ -7,6 +7,7 @@ type Brand = { id: string; workspaceId: string; name: string };
 type Video = { id: string; workspaceId: string; brandId: string; topic: string; version: number; status: string };
 type Scene = { id: string; role: string; narration: string; caption: string; [key: string]: unknown };
 type Plan = { title: string; scenes: Scene[]; cta: string; [key: string]: unknown };
+type CostSummary = { estimatedJpy: string; costs: Array<{ provider: string; model: string; unit: string; estimatedJpy: string }> };
 
 export default function VideoStudio() {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
@@ -19,6 +20,7 @@ export default function VideoStudio() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [costSummary, setCostSummary] = useState<CostSummary | null>(null);
 
   useEffect(() => { void loadOptions(); }, []);
 
@@ -46,7 +48,10 @@ export default function VideoStudio() {
       setBusy(false); return;
     }
     const generated = await planResponse.json() as { video: Video; plan: Plan };
-    setVideo(generated.video); setPlan(generated.plan); setMessage("fixture Directorで台本を生成しました。編集して保存できます。"); setBusy(false);
+    setVideo(generated.video); setPlan(generated.plan);
+    const costsResponse = await fetch(`/api/videos/${generated.video.id}/costs`);
+    if (costsResponse.ok) setCostSummary(await costsResponse.json() as CostSummary);
+    setMessage("fixture Directorで台本を生成しました。編集して保存できます。"); setBusy(false);
   }
 
   function updateScene(index: number, field: "narration" | "caption", value: string) {
@@ -71,6 +76,7 @@ export default function VideoStudio() {
     <label>テーマ<input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="例：春の手土産を選ぶコツ" /></label>
     <button onClick={createAndGenerate} disabled={busy}>{busy ? "処理中…" : "動画を作成して台本生成"}</button>
     {video && <p>動画ID: {video.id} / version: {video.version}</p>}
+    {costSummary && <p>見積原価：¥{costSummary.estimatedJpy}（fixtureは実費0円）</p>}
     {plan && <div><h3>台本編集</h3><label>タイトル<input value={plan.title} onChange={(event) => setPlan({ ...plan, title: event.target.value })} /></label>
       {plan.scenes.map((scene, index) => <fieldset key={scene.id}><legend>{scene.id} ({scene.role})</legend><label>ナレーション<textarea value={scene.narration} onChange={(event) => updateScene(index, "narration", event.target.value)} /></label><label>字幕<input value={scene.caption} onChange={(event) => updateScene(index, "caption", event.target.value)} /></label></fieldset>)}
       <label>CTA<input value={plan.cta} onChange={(event) => setPlan({ ...plan, cta: event.target.value })} /></label><button onClick={savePlan} disabled={busy}>台本を保存</button>

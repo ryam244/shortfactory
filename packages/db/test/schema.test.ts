@@ -3,6 +3,7 @@ import { assets, brands, generationJobs, users, videoOutputs, videos, workspaces
 import { createBrandRepository } from "../src/repositories/brands";
 import { createVideoRepository } from "../src/repositories/videos";
 import { createAssetRepository } from "../src/repositories/assets";
+import { createGenerationRepository } from "../src/repositories/generation";
 import { createIdentityRepository, normalizeEmail } from "../src/repositories/identity";
 
 describe("database schema", () => {
@@ -14,6 +15,7 @@ describe("database schema", () => {
     expect(createBrandRepository).toBeTypeOf("function");
     expect(createVideoRepository).toBeTypeOf("function");
     expect(createAssetRepository).toBeTypeOf("function");
+    expect(createGenerationRepository).toBeTypeOf("function");
   });
 
   it("normalizes and validates owner email addresses", () => {

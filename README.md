@@ -28,6 +28,8 @@ VOICEVOX Engineを起動した環境では、`SHORTFACTORY_VOICE_PROVIDER=voicev
 
 Directorの検証済みJSONを使う場合は、`SHORTFACTORY_PLAN_FILE=/path/plan.json` を追加する。JSONは`VideoPlan`として同じ契約検証を通り、無効な台本はレンダリング前に停止する。生成記録の`text`は`json`になる。
 
+`VideoPlan.bgm.enabled`が`true`の場合は、`bgm.assetKey`も素材マニフェストに音声ファイルとして登録する。未登録なら書き出し前に停止する。
+
 生成時に使った台本・音声・素材の種類を `storage/<id>/run.json` に記録する。`evaluation:summary` は、台本・音声・素材がすべて実物の動画だけをPhase 0aの判定対象にし、fixtureや仮素材を含む場合は「判定対象外（配線の確認のみ）」と表示する。合格には、判定対象の5本で技術検証が全件合格し、人手評価で4本以上が `postable_with_minor_edits` であることが必要。
 
 `evaluation:manifest` は再実行しても、記入済みの人手評価（`review`）を引き継ぐ。技術検証は解像度・30fps・H.264・AACの音声トラック・シーン音声・尺の誤差（150ms以内）を確認する。ffprobeはシステムにあればそれを使い、なければRemotion同梱のものを使うので、追加のインストールは不要。

@@ -61,12 +61,17 @@ const assetKeys = plan.scenes.flatMap((scene) => [
   ...(scene.visual.expressionKey ? [`${scene.visual.characterKey}/${scene.visual.expressionKey}`] : []),
   ...scene.visual.objectKeys,
 ]);
+if (plan.bgm?.enabled) assetKeys.push(plan.bgm.assetKey);
 const assets = assetManifestPath
   ? await new LocalAssetProvider(
       process.env.SHORTFACTORY_ASSET_ROOT ?? path.dirname(path.resolve(assetManifestPath)),
       assetManifest!,
     ).resolve(assetKeys)
   : {};
+const bgmUrl = plan.bgm?.enabled ? assets[plan.bgm.assetKey] ?? null : null;
+if (plan.bgm?.enabled && !bgmUrl) {
+  throw new Error(`BGM素材が未登録です: ${plan.bgm.assetKey}`);
+}
 
 const storage = new LocalStorageProvider(path.join(outputDir, "storage", outputName));
 await storage.put(`plans/${outputName}.json`, new TextEncoder().encode(JSON.stringify(plan, null, 2)), "application/json");
@@ -99,7 +104,7 @@ const props: YuruAnimeProps = {
   sceneFrames: timing.sceneFrames,
   assets,
   sceneAudio,
-  bgmUrl: null,
+  bgmUrl,
   showSafeZone: process.env.SHORTFACTORY_SHOW_SAFE_ZONE === "1",
 };
 await mkdir(outputDir, { recursive: true });

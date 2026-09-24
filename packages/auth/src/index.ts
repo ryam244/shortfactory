@@ -5,6 +5,12 @@ const SCRYPT_R = 8;
 const SCRYPT_P = 1;
 const KEY_LENGTH = 64;
 
+export function normalizeEmail(email: string): string {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized || !normalized.includes("@")) throw new Error("有効なメールアドレスが必要です");
+  return normalized;
+}
+
 export async function hashPassword(password: string): Promise<string> {
   if (password.length < 12) throw new Error("パスワードは12文字以上にしてください");
   const salt = randomBytes(16);

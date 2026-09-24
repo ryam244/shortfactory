@@ -1,11 +1,11 @@
 # Short Factory 進行表
 
-最終更新：2026-09-24 22:35 JST
+最終更新：2026-09-24 22:58 JST
 基準文書：[master-plan.md](./master-plan.md)
 
 ## 現在地
 
-**Phase 3の素材アップロード基盤まで進行。Phase 0aの品質判定、Phase 0bのWeb/Worker統合、Phase 3の音声UI・原価制御は未完了。**
+**Phase 5の30本評価配線まで進行。30本fixtureの生成・技術検証は完了したが、実素材・実音声による品質判定は未着手。**
 
 JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC上で1080×1920のMP4を1コマンド生成できる。現在のテストデータは動作確認用であり、実ブランドの品質合格とは扱わない。
 
@@ -20,7 +20,7 @@ JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC
 | 2：台本 | 一部完了 | `VideoPlan`、JSON台本Provider、読み辞書・検証、動画作成API、fixture Directorによる台本生成・保存API、version照合付き台本編集API、最小台本編集画面 | 外部Director接続、UIの実機操作確認、ジョブ化 |
 | 3：素材・音声 | 一部完了 | `StorageProvider`、`AssetProvider`、VOICEVOX、尺計算、素材メタデータ登録・一覧API、ローカルStorageへのファイルアップロード・所有者付き配信API、アップロードMIMEタイプ保存・配信、素材検索・種類フィルター・権利情報表示UI、画像生成Provider前のブランド別上限ガード、生成ジョブ・見積原価の記録と動画単位集計、VOICEVOX試聴API・台本画面接続、シーン単位の部分再生成API・UI、TTS音声のStorage永続保存と素材登録 | Provider別単価・実費確定 |
 | 4：動画 | 一部完了 | Remotionテンプレート、MP4、ffprobe技術検証、安全域、Web Studio内Remotion Playerプレビュー、登録素材のPreview反映、所有者確認付きrenderジョブ登録・状態API、ローカルrender Workerの1件処理・常駐監視・MP4 Storage保存・`video_outputs`登録、MP4ダウンロードAPI、最大3回のrender自動再試行、Preview/Worker共通のfixture音声尺、保存済みVOICEVOX音声のPreview/Worker利用、DB出力の自動整合検証コマンド | 実素材・実音声でのプレビューとMP4の一致確認 |
-| 5：運用 | 一部着手 | render失敗時の最大3回再試行、失敗ジョブの状態記録、所有者確認付き手動再実行API・UI、MP4保持期限のdry-run/apply CLI、30本評価コマンド入口 | 30本の実素材評価、結果集計、合格判定 |
+| 5：運用 | 一部完了・実素材評価待ち | render失敗時の最大3回再試行、失敗ジョブの状態記録、所有者確認付き手動再実行API・UI、MP4保持期限のdry-run/apply CLI、30本fixture生成、manifest、技術検証30/30、集計CLI | 30本の実素材評価、結果集計、合格判定 |
 | 6：クラウド | 保留 | なし | 30本評価合格後に必要性を判断 |
 
 ## 検証済みの事実
@@ -67,6 +67,8 @@ JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC
 - `POST /api/videos/:id/render/:jobId/retry`を追加。`failed` / `cancelled`ジョブだけを明示的に再キューでき、Studioにも再実行ボタンを追加
 - `pnpm --filter @shortfactory/video cleanup:outputs`を追加。既定はdry-run、`--apply`指定時だけ`SHORTFACTORY_OUTPUT_RETENTION_DAYS`（既定30日）超過のMP4とDBレコードを削除する
 - `evaluation:fixture:30`、`evaluation:manifest:30`、`evaluation:technical:30`、`evaluation:summary:30`を追加。`fixture-30`へ30本を生成・検証できるが、fixture動画は品質合格数へ算入しない
+- 30本fixture評価を実行し、`packages/video/out/fixture-30/`へMP4を30本生成。manifestは全30本に音声トラックあり、技術検証は30/30で合格
+- 30本fixtureの集計は品質判定対象0/30・人手評価0/30・投稿可能0/30となり、Phase 0a/実素材評価の合格数には算入しないことを確認
 - `fixtureVoiceDurationMs`を契約層へ追加し、Preview・Worker・FixtureVoiceProviderが同じ音声尺からシーンフレームを計算するよう統一
 - 保存済み`tts_scene_XX_*`素材がある場合は、実測WAV尺と音声データをPreview・Workerで利用。未生成シーンはfixtureへフォールバックする
 - Video Studioが選択ブランドの登録素材を取得し、認証済みcontent URLをPreviewへ渡す。未登録キーは既存のプレースホルダー描画を使う

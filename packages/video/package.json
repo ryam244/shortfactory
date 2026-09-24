@@ -20,6 +20,7 @@
     "evaluation:review": "tsx scripts/review-evaluation.ts",
     "render:sample": "tsx scripts/render-sample.ts",
     "worker:render": "tsx scripts/run-render-worker.ts",
+    "worker:render:watch": "tsx scripts/run-render-worker.ts --watch",
     "typecheck": "tsc -p tsconfig.json",
     "test": "echo \"no tests yet\""
   },

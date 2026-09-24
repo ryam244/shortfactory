@@ -21,7 +21,7 @@ async function runOnce(): Promise<boolean> {
     .from(generationJobs)
     .innerJoin(videos, eq(generationJobs.videoId, videos.id))
     .innerJoin(brands, eq(videos.brandId, brands.id))
-    .where(eq(generationJobs.status, "queued"))
+    .where(and(eq(generationJobs.status, "queued"), eq(generationJobs.type, "render")))
     .orderBy(asc(generationJobs.createdAt)).limit(1);
   if (!candidate) return false;
   const [job] = await db.update(generationJobs).set({ status: "running", step: "rendering", attempts: candidate.job.attempts + 1 })
@@ -74,8 +74,13 @@ async function runOnce(): Promise<boolean> {
 }
 
 try {
-  const processed = await runOnce();
-  console.log(processed ? "render worker finished one job" : "no queued render jobs");
+  const watch = process.argv.includes("--watch");
+  do {
+    const processed = await runOnce();
+    if (!processed) console.log(watch ? "no queued render jobs; waiting" : "no queued render jobs");
+    if (watch) await new Promise((resolve) => setTimeout(resolve, 5_000));
+    else break;
+  } while (watch);
 } finally {
   await pool.end();
 }

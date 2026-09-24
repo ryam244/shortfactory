@@ -1,6 +1,6 @@
 # Short Factory 進行表
 
-最終更新：2026-09-24 20:29 JST
+最終更新：2026-09-24 20:33 JST
 基準文書：[master-plan.md](./master-plan.md)
 
 ## 現在地
@@ -19,7 +19,7 @@ JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC
 | 1：基盤 | 一部完了 | Next.jsのログイン画面、DBユーザー認証、署名セッション、未ログイン拒否、Workspace作成、所有者確認付きブランド一覧・登録API、ブランド設定画面、冪等な初期ユーザー／Workspace seed | CI、日次バックアップ、初回ユーザー作成の実機確認 |
 | 2：台本 | 一部完了 | `VideoPlan`、JSON台本Provider、読み辞書・検証、動画作成API、fixture Directorによる台本生成・保存API、version照合付き台本編集API、最小台本編集画面 | 外部Director接続、UIの実機操作確認、ジョブ化 |
 | 3：素材・音声 | 一部完了 | `StorageProvider`、`AssetProvider`、VOICEVOX、尺計算、素材メタデータ登録・一覧API、ローカルStorageへのファイルアップロード・所有者付き配信API、アップロードMIMEタイプ保存・配信、素材検索・種類フィルター・権利情報表示UI、画像生成Provider前のブランド別上限ガード、生成ジョブ・見積原価の記録と動画単位集計、VOICEVOX試聴API・台本画面接続、シーン単位の部分再生成API・UI、TTS音声のStorage永続保存と素材登録 | Provider別単価・実費確定 |
-| 4：動画 | 一部完了 | Remotionテンプレート、MP4、ffprobe技術検証、安全域、Web Studio内Remotion Playerプレビュー、所有者確認付きrenderジョブ登録・状態API、ローカルrender Workerの1件処理・MP4 Storage保存・`video_outputs`登録 | Worker常駐化・再試行、WebからのMP4ダウンロード、プレビューとMP4の一致確認 |
+| 4：動画 | 一部完了 | Remotionテンプレート、MP4、ffprobe技術検証、安全域、Web Studio内Remotion Playerプレビュー、所有者確認付きrenderジョブ登録・状態API、ローカルrender Workerの1件処理・常駐監視・MP4 Storage保存・`video_outputs`登録、MP4ダウンロードAPI | 再試行、プレビューとMP4の一致確認 |
 | 5：運用 | 未着手 | なし | 再試行、失敗回復、ダウンロード、保持期限、30本評価 |
 | 6：クラウド | 保留 | なし | 30本評価合格後に必要性を判断 |
 
@@ -61,6 +61,7 @@ JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC
 - `@remotion/player`をWebへ追加し、Video Studioで保存済み台本を1080×1920のRemotion Playerとしてプレビューできるようにした（素材は現段階ではプレースホルダー）
 - `POST/GET /api/videos/:id/render`を追加。保存済み台本から所有者確認付きrenderジョブを`queued`で登録・一覧取得できる（Worker未接続のため完成扱いにしない）
 - `pnpm --filter @shortfactory/video worker:render`を追加。queuedジョブを1件claimし、RemotionでH.264/AAC MP4を書き出し、ローカルStorageと`video_outputs`へ保存して成功・失敗を更新する
+- `pnpm --filter @shortfactory/video worker:render:watch`を追加。5秒間隔でrenderジョブを監視し、Studioは状態を追跡する。`GET /api/videos/:id/output`で完成MP4を所有者確認付きでダウンロードできる
 - `POST /api/videos/:id/scenes/:sceneId/regenerate`を追加。versionを照合し、対象シーンだけをfixture Directorで差し替えて保存する
 - 最終テスト動画：1080×1920、30fps、H.264、AAC、約28.5秒
 - Phase 0a人手評価：0/5。実素材・実Directorが未接続のため、品質判定はまだ開始しない

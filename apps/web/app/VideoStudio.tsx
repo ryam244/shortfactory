@@ -21,6 +21,8 @@ export default function VideoStudio() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [costSummary, setCostSummary] = useState<CostSummary | null>(null);
+  const [audioUrls, setAudioUrls] = useState<Record<string, string>>({});
+  const [previewingScene, setPreviewingScene] = useState<string | null>(null);
 
   useEffect(() => { void loadOptions(); }, []);
 
@@ -59,6 +61,15 @@ export default function VideoStudio() {
     setPlan({ ...plan, scenes: plan.scenes.map((scene, sceneIndex) => sceneIndex === index ? { ...scene, [field]: value } : scene) });
   }
 
+  async function previewVoice(scene: Scene) {
+    setError(""); setPreviewingScene(scene.id);
+    const response = await fetch("/api/voices/synthesize", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: scene.narration, voiceId: "3" }) });
+    if (!response.ok) { setError("音声を生成できません。VOICEVOX Engineが起動しているか確認してください。"); setPreviewingScene(null); return; }
+    const url = URL.createObjectURL(await response.blob());
+    setAudioUrls((current) => { const previous = current[scene.id]; if (previous) URL.revokeObjectURL(previous); return { ...current, [scene.id]: url }; });
+    setPreviewingScene(null);
+  }
+
   async function savePlan() {
     if (!video || !plan) return;
     setBusy(true); setError(""); setMessage("");
@@ -78,7 +89,7 @@ export default function VideoStudio() {
     {video && <p>動画ID: {video.id} / version: {video.version}</p>}
     {costSummary && <p>見積原価：¥{costSummary.estimatedJpy}（fixtureは実費0円）</p>}
     {plan && <div><h3>台本編集</h3><label>タイトル<input value={plan.title} onChange={(event) => setPlan({ ...plan, title: event.target.value })} /></label>
-      {plan.scenes.map((scene, index) => <fieldset key={scene.id}><legend>{scene.id} ({scene.role})</legend><label>ナレーション<textarea value={scene.narration} onChange={(event) => updateScene(index, "narration", event.target.value)} /></label><label>字幕<input value={scene.caption} onChange={(event) => updateScene(index, "caption", event.target.value)} /></label></fieldset>)}
+      {plan.scenes.map((scene, index) => <fieldset key={scene.id}><legend>{scene.id} ({scene.role})</legend><label>ナレーション<textarea value={scene.narration} onChange={(event) => updateScene(index, "narration", event.target.value)} /></label><button type="button" onClick={() => void previewVoice(scene)} disabled={previewingScene === scene.id}>{previewingScene === scene.id ? "音声生成中…" : "音声を試聴"}</button>{audioUrls[scene.id] && <audio controls src={audioUrls[scene.id]} /> }<label>字幕<input value={scene.caption} onChange={(event) => updateScene(index, "caption", event.target.value)} /></label></fieldset>)}
       <label>CTA<input value={plan.cta} onChange={(event) => setPlan({ ...plan, cta: event.target.value })} /></label><button onClick={savePlan} disabled={busy}>台本を保存</button>
     </div>}
     {message && <p role="status">{message}</p>}{error && <p role="alert">{error}</p>}

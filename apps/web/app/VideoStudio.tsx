@@ -9,7 +9,7 @@ type Brand = { id: string; workspaceId: string; name: string; kit: BrandKit };
 type Video = { id: string; workspaceId: string; brandId: string; topic: string; version: number; status: string };
 type Plan = VideoPlan;
 type CostSummary = { estimatedJpy: string; costs: Array<{ provider: string; model: string; unit: string; estimatedJpy: string }> };
-type RenderJob = { id: string; status: string; step: string | null };
+type RenderJob = { id: string; status: string; step: string | null; errorCode?: string | null };
 
 export default function VideoStudio() {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
@@ -117,6 +117,16 @@ export default function VideoStudio() {
     }
   }
 
+  async function retryRenderJob() {
+    if (!video || !renderJob) return;
+    setBusy(true); setError("");
+    const response = await fetch(`/api/videos/${video.id}/render/${renderJob.id}/retry`, { method: "POST" });
+    const body = await response.json().catch(() => ({})) as { job?: RenderJob; error?: string };
+    if (!response.ok || !body.job) { setError(body.error === "job_not_retryable" ? "このジョブは再実行できません。" : "ジョブを再実行できません。"); setBusy(false); return; }
+    setRenderJob(body.job); setMessage("動画生成ジョブを再キューしました。"); setBusy(false);
+    void waitForRenderJob(video.id, body.job.id);
+  }
+
   const visibleBrands = brands.filter((brand) => brand.workspaceId === workspaceId);
   const selectedBrand = brands.find((brand) => brand.id === brandId);
   return <section>
@@ -130,7 +140,7 @@ export default function VideoStudio() {
     {plan && selectedBrand && <><h3>動画プレビュー</h3><PreviewPlayer plan={plan} brand={selectedBrand.kit} /></>}
     {plan && <div><h3>台本編集</h3><label>タイトル<input value={plan.title} onChange={(event) => setPlan({ ...plan, title: event.target.value })} /></label>
       {plan.scenes.map((scene, index) => <fieldset key={scene.id}><legend>{scene.id} ({scene.role})</legend><label>ナレーション<textarea value={scene.narration} onChange={(event) => updateScene(index, "narration", event.target.value)} /></label><button type="button" onClick={() => void regenerateScene(scene)} disabled={busy}>このシーンを再生成</button><button type="button" onClick={() => void previewVoice(scene)} disabled={previewingScene === scene.id || busy}>{previewingScene === scene.id ? "音声生成中…" : "音声を試聴"}</button>{audioUrls[scene.id] && <audio controls src={audioUrls[scene.id]} /> }<label>字幕<input value={scene.caption} onChange={(event) => updateScene(index, "caption", event.target.value)} /></label></fieldset>)}
-      <label>CTA<input value={plan.cta} onChange={(event) => setPlan({ ...plan, cta: event.target.value })} /></label><button onClick={savePlan} disabled={busy}>台本を保存</button><button onClick={() => void enqueueRender()} disabled={busy}>MP4生成ジョブを作成</button>{renderJob && <p>Render job: {renderJob.id} / {renderJob.status}{renderJob.status === "succeeded" && <> / <a href={`/api/videos/${video?.id}/output`}>MP4をダウンロード</a></>}</p>}
+      <label>CTA<input value={plan.cta} onChange={(event) => setPlan({ ...plan, cta: event.target.value })} /></label><button onClick={savePlan} disabled={busy}>台本を保存</button><button onClick={() => void enqueueRender()} disabled={busy}>MP4生成ジョブを作成</button>{renderJob && <p>Render job: {renderJob.id} / {renderJob.status}{renderJob.status === "failed" && <> / <button type="button" onClick={() => void retryRenderJob()} disabled={busy}>再実行</button></>}{renderJob.status === "succeeded" && <> / <a href={`/api/videos/${video?.id}/output`}>MP4をダウンロード</a></>}</p>}
     </div>}
     {message && <p role="status">{message}</p>}{error && <p role="alert">{error}</p>}
   </section>;

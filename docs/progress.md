@@ -1,6 +1,6 @@
 # Short Factory 進行表
 
-最終更新：2026-09-24 22:00 JST
+最終更新：2026-09-24 22:03 JST
 基準文書：[master-plan.md](./master-plan.md)
 
 ## 現在地
@@ -20,7 +20,7 @@ JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC
 | 2：台本 | 一部完了 | `VideoPlan`、JSON台本Provider、読み辞書・検証、動画作成API、fixture Directorによる台本生成・保存API、version照合付き台本編集API、最小台本編集画面 | 外部Director接続、UIの実機操作確認、ジョブ化 |
 | 3：素材・音声 | 一部完了 | `StorageProvider`、`AssetProvider`、VOICEVOX、尺計算、素材メタデータ登録・一覧API、ローカルStorageへのファイルアップロード・所有者付き配信API、アップロードMIMEタイプ保存・配信、素材検索・種類フィルター・権利情報表示UI、画像生成Provider前のブランド別上限ガード、生成ジョブ・見積原価の記録と動画単位集計、VOICEVOX試聴API・台本画面接続、シーン単位の部分再生成API・UI、TTS音声のStorage永続保存と素材登録 | Provider別単価・実費確定 |
 | 4：動画 | 一部完了 | Remotionテンプレート、MP4、ffprobe技術検証、安全域、Web Studio内Remotion Playerプレビュー、所有者確認付きrenderジョブ登録・状態API、ローカルrender Workerの1件処理・常駐監視・MP4 Storage保存・`video_outputs`登録、MP4ダウンロードAPI、最大3回のrender自動再試行 | プレビューとMP4の一致確認 |
-| 5：運用 | 一部着手 | render失敗時の最大3回再試行、失敗ジョブの状態記録 | 手動再実行、失敗回復UI、保持期限、30本評価 |
+| 5：運用 | 一部着手 | render失敗時の最大3回再試行、失敗ジョブの状態記録、所有者確認付き手動再実行API・UI | 保持期限、30本評価 |
 | 6：クラウド | 保留 | なし | 30本評価合格後に必要性を判断 |
 
 ## 検証済みの事実
@@ -64,6 +64,7 @@ JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC
 - `pnpm --filter @shortfactory/video worker:render:watch`を追加。5秒間隔でrenderジョブを監視し、Studioは状態を追跡する。`GET /api/videos/:id/output`で完成MP4を所有者確認付きでダウンロードできる
 - pnpmのパッケージ別実行でもWebとWorkerが同じ相対Storageを参照するよう、`pnpm-workspace.yaml`を基準にしたStorageパス解決を追加
 - render Workerが一時障害時に最大3回まで自動再試行し、上限到達後だけ`failed`へ確定する
+- `POST /api/videos/:id/render/:jobId/retry`を追加。`failed` / `cancelled`ジョブだけを明示的に再キューでき、Studioにも再実行ボタンを追加
 - `POST /api/videos/:id/scenes/:sceneId/regenerate`を追加。versionを照合し、対象シーンだけをfixture Directorで差し替えて保存する
 - 最終テスト動画：1080×1920、30fps、H.264、AAC、約28.5秒
 - Phase 0a人手評価：0/5。実素材・実Directorが未接続のため、品質判定はまだ開始しない

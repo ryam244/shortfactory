@@ -1,5 +1,5 @@
 /**
- * 素材・台本を自動準備して、登録素材を使うローカルテスト動画を1本生成する。
+ * 素材・台本・検証用BGMを自動準備して、登録素材を使うローカルテスト動画を1本生成する。
  * 既定はfixture音声。VOICEVOXを使う場合はSHORTFACTORY_VOICE_PROVIDER=voicevoxを指定する。
  */
 import { mkdir, writeFile } from "node:fs/promises";
@@ -14,6 +14,7 @@ const outputDir = path.resolve(here, "../out/local-test");
 const assetRoot = path.join(outputDir, "assets");
 const manifestPath = path.join(outputDir, "assets.json");
 const planPath = path.join(outputDir, "plan.json");
+const bgmPath = path.join(assetRoot, "bgm-test.wav");
 
 const assets = [
   ["gift_girl", "#F2A7A0"],
@@ -53,7 +54,17 @@ for (const [key, color] of assets) {
   };
 }
 await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
-await writeFile(planPath, `${JSON.stringify(giftPlanFixture, null, 2)}\n`, "utf8");
+const plan = structuredClone(giftPlanFixture);
+plan.bgm = { enabled: true, assetKey: "bgm_test", volume: 0.08 };
+await writeFile(planPath, `${JSON.stringify(plan, null, 2)}\n`, "utf8");
+await writeFile(bgmPath, createTestBgmWav());
+manifest.bgm_test = {
+  path: "bgm-test.wav",
+  contentType: "audio/wav",
+  source: "shortfactory-local-test",
+  rightsNote: "テスト運用専用の合成音。公開・商用利用の素材判定には使わない",
+};
+await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
 
 const command = process.env.npm_execpath ?? "pnpm";
 const result = spawnSync(command, ["exec", "tsx", path.join(here, "run-fixture-pipeline.ts"), "--", "ローカルテスト"], {
@@ -74,3 +85,32 @@ if (result.status !== 0) process.exit(result.status ?? 1);
 console.log(`テスト素材: ${assetRoot}`);
 console.log(`テスト台本: ${planPath}`);
 console.log(`テスト動画: ${path.join(outputDir, "local-gift.mp4")}`);
+
+function createTestBgmWav(): Uint8Array {
+  const sampleRate = 16_000;
+  const durationSec = 2;
+  const dataSize = sampleRate * durationSec * 2;
+  const bytes = new Uint8Array(44 + dataSize);
+  const view = new DataView(bytes.buffer);
+  const writeText = (offset: number, value: string) => {
+    [...value].forEach((char, index) => view.setUint8(offset + index, char.charCodeAt(0)));
+  };
+  writeText(0, "RIFF");
+  view.setUint32(4, 36 + dataSize, true);
+  writeText(8, "WAVE");
+  writeText(12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeText(36, "data");
+  view.setUint32(40, dataSize, true);
+  for (let i = 0; i < sampleRate * durationSec; i += 1) {
+    const sample = Math.round(Math.sin((2 * Math.PI * 220 * i) / sampleRate) * 900);
+    view.setInt16(44 + i * 2, sample, true);
+  }
+  return bytes;
+}

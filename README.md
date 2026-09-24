@@ -2,6 +2,7 @@
 
 ブランドとテーマから縦型ショート動画（1080×1920 / 30fps / H.264・AAC）を作る自社向け制作ツール。
 計画と進め方は [docs/master-plan.md](docs/master-plan.md) を参照。
+現在の完了状況と検証証拠は [docs/progress.md](docs/progress.md) を参照。
 
 ## 現在の状態：Phase 0a（品質検証）の骨組み
 
@@ -44,6 +45,8 @@ pnpm typecheck       # 型検査
 pnpm studio          # Remotion Studioでプレビュー（ブラウザが開く。SNSのUIに隠れる範囲を赤で表示）
 pnpm render:sample   # packages/video/out/gift-sample.mp4 に書き出し
 pnpm --filter @shortfactory/video pipeline:fixture -- "春の手土産"  # テーマ→保存→書き出し
+pnpm --filter @shortfactory/video pipeline:local                 # JSON台本＋登録素材で書き出し
+pnpm --filter @shortfactory/video pipeline:test                  # テスト素材・台本を準備して1本生成
 pnpm --filter @shortfactory/video pipeline:fixture:batch              # 固定fixtureを5テーマ生成
 pnpm --filter @shortfactory/video evaluation:manifest                 # 人手評価用マニフェストを作成
 pnpm --filter @shortfactory/video evaluation:technical                # 音声・尺・MP4の機械検証

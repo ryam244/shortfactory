@@ -19,6 +19,9 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const outputDir = path.resolve(here, "../out", process.env.SHORTFACTORY_OUTPUT_DIR ?? "fixture-pipeline");
 const outputName = process.env.SHORTFACTORY_OUTPUT_NAME ?? "gift-sample";
 const assetManifestPath = process.env.SHORTFACTORY_ASSET_MANIFEST;
+const assetManifest = assetManifestPath
+  ? JSON.parse(await readFile(assetManifestPath, "utf8")) as LocalAssetManifest
+  : null;
 const outputLocation = path.join(outputDir, `${outputName}.mp4`);
 const browserExecutable = process.env.REMOTION_BROWSER_EXECUTABLE ?? null;
 const cliArgs = process.argv.slice(2);
@@ -36,7 +39,7 @@ const voiceId = process.env.VOICEVOX_SPEAKER ?? fixtureProviders.brand.voice.voi
 const plan = await textProvider.generatePlan({
   topic,
   brand: fixtureProviders.brand,
-  availableAssetKeys: fixtureProviders.assetKeys,
+  availableAssetKeys: assetManifest ? new Set(Object.keys(assetManifest)) : fixtureProviders.assetKeys,
 });
 const voiceDurations = await Promise.all(
   plan.scenes.map(async (scene) => {
@@ -60,7 +63,7 @@ const assetKeys = plan.scenes.flatMap((scene) => [
 const assets = assetManifestPath
   ? await new LocalAssetProvider(
       process.env.SHORTFACTORY_ASSET_ROOT ?? path.dirname(path.resolve(assetManifestPath)),
-      JSON.parse(await readFile(assetManifestPath, "utf8")) as LocalAssetManifest,
+      assetManifest!,
     ).resolve(assetKeys)
   : {};
 

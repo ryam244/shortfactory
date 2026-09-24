@@ -6,8 +6,14 @@ import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
-/** 5本評価で使うテーマ。生成とマニフェストの両方がここを参照する。 */
-export const EVALUATION_TOPICS = ["春の手土産", "職場へのお菓子", "引っ越し祝い", "北海道のおみやげ", "誕生日ギフト"] as const;
+/** 評価で使うテーマ。件数を増やしても生成とマニフェストが同じ一覧を参照する。 */
+const BASE_EVALUATION_TOPICS = ["春の手土産", "職場へのお菓子", "引っ越し祝い", "北海道のおみやげ", "誕生日ギフト"] as const;
+const evaluationCount = Number(process.env.SHORTFACTORY_EVALUATION_COUNT ?? BASE_EVALUATION_TOPICS.length);
+if (!Number.isInteger(evaluationCount) || evaluationCount < 1) throw new Error("SHORTFACTORY_EVALUATION_COUNT must be a positive integer");
+export const EVALUATION_TOPICS = Array.from({ length: evaluationCount }, (_, index) => {
+  const base = BASE_EVALUATION_TOPICS[index % BASE_EVALUATION_TOPICS.length]!;
+  return index < BASE_EVALUATION_TOPICS.length ? base : `${base}（評価${index + 1}）`;
+});
 
 export function evaluationItemId(index: number): string {
   return `gift-${String(index + 1).padStart(2, "0")}`;

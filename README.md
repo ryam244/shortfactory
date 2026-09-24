@@ -44,7 +44,7 @@ Directorの検証済みJSONを使う場合は、`SHORTFACTORY_PLAN_FILE=/path/pl
 pnpm install
 docker compose up -d voicevox postgres # Phase 0bのローカル依存サービス
 pnpm --filter @shortfactory/db db:migrate # PostgresへDrizzleマイグレーションを適用
-pnpm --filter @shortfactory/web dev # ログインAPIを含むWeb開発サーバー
+pnpm --filter @shortfactory/web dev # ログイン画面とログインAPIを含むWeb開発サーバー
 pnpm test            # 契約のテスト
 pnpm typecheck       # 型検査
 pnpm studio          # Remotion Studioでプレビュー（ブラウザが開く。SNSのUIに隠れる範囲を赤で表示）

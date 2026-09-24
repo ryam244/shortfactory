@@ -7,10 +7,11 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "echo \"web tests not yet\""
+    "test": "vitest run"
   },
   "dependencies": {
     "@shortfactory/auth": "workspace:*",
+    "@shortfactory/db": "workspace:*",
     "next": "16.3.6",
     "react": "19.3.0",
     "react-dom": "19.3.0"
@@ -19,6 +20,7 @@
     "@types/node": "^22.20.4",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.1"
   }
 }

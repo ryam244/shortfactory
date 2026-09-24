@@ -41,7 +41,8 @@ JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC
 - Drizzle接続クライアントと、`BrandKit`を検証して保存するブランドRepositoryを追加
 - ユーザー・ワークスペースRepositoryを追加。メール正規化とパスワードハッシュ必須の入口を実装（認証画面・セッションは未実装）
 - `packages/auth`にscryptパスワードハッシュ、署名付きセッション、HttpOnly/SameSite/Secure Cookie属性を追加（ログインAPI・環境変数接続は未実装）
-- `apps/web`にNext.js最小画面とlogin/logout/session APIを追加。管理者環境変数接続まで実装（レート制限・DBユーザー照合・画面フォームは未実装）
+- `apps/web`にNext.jsログイン画面とlogin/logout/session APIを追加。`DATABASE_URL`設定時はDBユーザー照合、未設定時は開発用管理者環境変数へフォールバック（レート制限・ユーザー作成UIは未実装）
+- 開発HTTPではセッションCookieの`Secure`属性を外し、本番`NODE_ENV=production`では`Secure`を維持する設定を追加
 - 最終テスト動画：1080×1920、30fps、H.264、AAC、約28.5秒
 - Phase 0a人手評価：0/5。実素材・実Directorが未接続のため、品質判定はまだ開始しない
 

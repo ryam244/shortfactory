@@ -59,8 +59,8 @@ export function verifySessionToken(token: string, secret: string, nowMs = Date.n
   }
 }
 
-export function sessionCookie(token: string, maxAgeSec = 60 * 60 * 24 * 7): string {
-  return `sf_session=${encodeURIComponent(token)}; Max-Age=${maxAgeSec}; Path=/; HttpOnly; SameSite=Lax; Secure`;
+export function sessionCookie(token: string, maxAgeSec = 60 * 60 * 24 * 7, secure = true): string {
+  return `sf_session=${encodeURIComponent(token)}; Max-Age=${maxAgeSec}; Path=/; HttpOnly; SameSite=Lax${secure ? "; Secure" : ""}`;
 }
 
 function sign(value: string, secret: string): string {

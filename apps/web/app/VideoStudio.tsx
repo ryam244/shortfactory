@@ -79,6 +79,16 @@ export default function VideoStudio() {
     setVideo(body.video ?? video); setMessage("台本を保存しました。"); setBusy(false);
   }
 
+  async function regenerateScene(scene: Scene) {
+    if (!video || !plan) return;
+    setBusy(true); setError(""); setMessage("");
+    const response = await fetch(`/api/videos/${video.id}/scenes/${scene.id}/regenerate`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ version: video.version }) });
+    const body = await response.json().catch(() => ({})) as { video?: Video; plan?: Plan; error?: string; currentVersion?: number };
+    if (!response.ok) { setError(body.error === "version_conflict" ? `別の更新があります。最新版（version ${body.currentVersion ?? "?"}）を読み直してください。` : "シーンを再生成できません。"); setBusy(false); return; }
+    if (body.video && body.plan) { setVideo(body.video); setPlan(body.plan); setMessage(`${scene.id}を再生成しました。`); }
+    setBusy(false);
+  }
+
   const visibleBrands = brands.filter((brand) => brand.workspaceId === workspaceId);
   return <section>
     <h2>動画テスト</h2>
@@ -89,7 +99,7 @@ export default function VideoStudio() {
     {video && <p>動画ID: {video.id} / version: {video.version}</p>}
     {costSummary && <p>見積原価：¥{costSummary.estimatedJpy}（fixtureは実費0円）</p>}
     {plan && <div><h3>台本編集</h3><label>タイトル<input value={plan.title} onChange={(event) => setPlan({ ...plan, title: event.target.value })} /></label>
-      {plan.scenes.map((scene, index) => <fieldset key={scene.id}><legend>{scene.id} ({scene.role})</legend><label>ナレーション<textarea value={scene.narration} onChange={(event) => updateScene(index, "narration", event.target.value)} /></label><button type="button" onClick={() => void previewVoice(scene)} disabled={previewingScene === scene.id}>{previewingScene === scene.id ? "音声生成中…" : "音声を試聴"}</button>{audioUrls[scene.id] && <audio controls src={audioUrls[scene.id]} /> }<label>字幕<input value={scene.caption} onChange={(event) => updateScene(index, "caption", event.target.value)} /></label></fieldset>)}
+      {plan.scenes.map((scene, index) => <fieldset key={scene.id}><legend>{scene.id} ({scene.role})</legend><label>ナレーション<textarea value={scene.narration} onChange={(event) => updateScene(index, "narration", event.target.value)} /></label><button type="button" onClick={() => void regenerateScene(scene)} disabled={busy}>このシーンを再生成</button><button type="button" onClick={() => void previewVoice(scene)} disabled={previewingScene === scene.id || busy}>{previewingScene === scene.id ? "音声生成中…" : "音声を試聴"}</button>{audioUrls[scene.id] && <audio controls src={audioUrls[scene.id]} /> }<label>字幕<input value={scene.caption} onChange={(event) => updateScene(index, "caption", event.target.value)} /></label></fieldset>)}
       <label>CTA<input value={plan.cta} onChange={(event) => setPlan({ ...plan, cta: event.target.value })} /></label><button onClick={savePlan} disabled={busy}>台本を保存</button>
     </div>}
     {message && <p role="status">{message}</p>}{error && <p role="alert">{error}</p>}

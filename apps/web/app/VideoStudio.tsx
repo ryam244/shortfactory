@@ -63,10 +63,11 @@ export default function VideoStudio() {
 
   async function previewVoice(scene: Scene) {
     setError(""); setPreviewingScene(scene.id);
-    const response = await fetch("/api/voices/synthesize", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: scene.narration, voiceId: "3" }) });
+    const response = await fetch("/api/voices/synthesize", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: scene.narration, voiceId: "3", videoId: video?.id, sceneId: scene.id, persist: true }) });
     if (!response.ok) { setError("音声を生成できません。VOICEVOX Engineが起動しているか確認してください。"); setPreviewingScene(null); return; }
-    const url = URL.createObjectURL(await response.blob());
-    setAudioUrls((current) => { const previous = current[scene.id]; if (previous) URL.revokeObjectURL(previous); return { ...current, [scene.id]: url }; });
+    const body = await response.json() as { asset?: { id: string } };
+    if (!body.asset) { setError("生成音声の保存情報を取得できません。"); setPreviewingScene(null); return; }
+    setAudioUrls((current) => ({ ...current, [scene.id]: `/api/assets/${body.asset!.id}/content` }));
     setPreviewingScene(null);
   }
 

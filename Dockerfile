@@ -7,7 +7,8 @@ ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
 RUN apt-get update \
   && apt-get install -y --no-install-recommends chromium ffmpeg ca-certificates \
   && rm -rf /var/lib/apt/lists/* \
-  && corepack enable
+  && corepack enable \
+  && corepack prepare pnpm@10.33.0 --activate
 
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./

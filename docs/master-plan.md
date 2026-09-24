@@ -12,8 +12,10 @@
 | 2 | `VideoPlan`に`narrationReading`、ブランドに読み辞書を追加 | 日本語TTSの固有名詞・地名の読み間違い対策。後付けは影響範囲が大きい |
 | 3 | 素材の事前準備を明記 | 素材ゼロではDirectorが選べるキーがない |
 | 4 | 原価の予約方式をv0.2へ延期し、事前チェック方式に簡素化 | 同時実行1件・1本15〜60円規模では過剰 |
-| 5 | 基盤をSupabaseからRailway（Postgres・Web・ワーカー）＋Cloudflare R2へ変更 | 単一利用者ではRLS・大規模認証が不要。無料枠1GB・7日停止・バックアップなしを回避 |
+| 5 | Supabaseをやめ、Postgres＋Drizzle＋`StorageProvider`の構成に変更 | 単一利用者ではRLS・大規模認証が不要。無料枠1GB・7日停止・バックアップなしを回避 |
 | 6 | 字幕改行（BudouX）、SNS UIの安全域、BGM方針、TTS候補の比較を追加 | 投稿品質に直結する抜けの補完 |
+| 7 | v0.1〜30本評価はローカルPCで完結（サーバー代0円）。クラウド配置は評価合格後に決定 | 品質が合格する前に固定費を払わない |
+| 8 | v0.1の標準を「画像生成0枚」「TTSはVOICEVOX第一候補」「DirectorはHaiku級の低価格モデル」に変更 | 1本あたりのAPI原価を約1〜2円に抑える |
 
 ## 1. 目標と完成形
 
@@ -29,7 +31,7 @@ Short Factoryは、ブランドとテーマを指定すると、台本・シー�
 | --- | --- |
 | ブランド | 名前、テーマ、色・フォント、文体、禁止事項、CTA、音声設定、**読み辞書** |
 | 制作 | テーマ入力、Directorによる構造化台本、シーン単位のテキスト・**読み**修正 |
-| 素材 | 登録済み素材の選択、足りない素材だけ画像生成、利用権情報の保存 |
+| 素材 | 登録済み素材の選択、利用権情報の保存。画像生成は上限枚数を設定した場合のみ（v0.1の標準は0枚） |
 | 音声 | 日本語TTS、出力音声の尺を計測しシーン時間を調整 |
 | 動画 | Yuru Animeテンプレート1種、固定BGM1曲（任意でオフ）、RemotionプレビューとMP4書き出し |
 | 運用 | 生成ジョブの状態表示、再試行、基本的な原価記録、ダウンロード |
@@ -43,30 +45,34 @@ Short Factoryは、ブランドとテーマを指定すると、台本・シー�
 1. 「北海道旅行」「ギフト」「雑学」からブランドを登録し、淡い手描き風などのスタイル、CTA、読み辞書を指定する。
 2. テーマ「冬の北海道旅行で注意すること3選」と狙う視聴者を入力する。
 3. Directorが5〜8シーンの`VideoPlan`を返す。文字数・禁止事項・総尺を検証し、必要なら一度だけ修正する。読み辞書を`narrationReading`へ自動適用する。
-4. 既存素材を優先して使用し、不足分だけ生成する。新規画像は標準設定で最大3枚。
+4. 登録済み素材から選ぶ。v0.1の標準では画像を生成せず、Directorは使える素材キーの中だけで構成する。ブランド設定で画像生成の上限枚数を1以上にした場合のみ、不足分を生成する。
 5. TTSを生成して実測尺に合わせてシーンを確定する。内容や読みを修正した場合は該当シーンの音声だけ再生成する。
 6. ブラウザで確認して字幕・台本・読みを直し、別ジョブとして書き出す。MP4は非公開の保存領域から短命URLでダウンロードする。
 
 ## 3. 技術構成と責任の境界
 
-| レイヤー | v0.1の選択 | 担当すること |
+**v0.1の配置方針：** Phase 0aから30本の評価が終わるまでは、すべてを自分のPCで動かしサーバー代を0円にする。クラウドへの配置は評価合格後に§11の比較表から選ぶ。DB・ファイル・実行環境はすべてコンテナとインターフェースで分離し、クラウドへ移すときは設定の変更で済むようにする。
+
+| レイヤー | v0.1の選択（ローカルPC） | 担当すること |
 | --- | --- | --- |
-| Web | Next.js、TypeScript、Tailwind CSS（Railway上で実行） | 管理画面、認証済みAPI、ジョブ状態表示 |
-| 認証 | 単一管理者のパスワードログイン（ハッシュ化した資格情報を環境変数に保持、HttpOnly署名Cookieのセッション） | v0.1は利用者1名。複数人化の際にAuth.js等へ置き換える |
-| DB | PostgreSQL（Railway）、Drizzle ORM、Drizzleのマイグレーション | ユーザー、ブランド、動画、ジョブ、原価 |
-| ファイル保存 | Cloudflare R2（非公開バケット、署名付き短命URL） | ブランド素材、音声、MP4 |
+| Web | Next.js、TypeScript、Tailwind CSS | 管理画面、認証済みAPI、ジョブ状態表示 |
+| 認証 | 単一管理者のパスワードログイン（ハッシュ化した資格情報を環境変数に保持、HttpOnly署名Cookieのセッション） | v0.1は利用者1名。クラウド移行後も同じ方式を使い、複数人化の際にAuth.js等へ置き換える |
+| DB | PostgreSQL（Docker Composeで起動）、Drizzle ORM、Drizzleのマイグレーション | ユーザー、ブランド、動画、ジョブ、原価。本番と同じPostgresを使い、移行時の方言差をなくす |
+| ファイル保存 | PCのディスク（`StorageProvider`のローカル実装） | ブランド素材、音声、MP4 |
 | 動画UI | Remotion Player | 同じ動画コンポーネントをブラウザで確認 |
-| 動画実行 | 独立したNode.jsワーカー、Remotion renderer（Railway上、Chromium・FFmpeg入りコンテナ） | 外部API呼び出しと動画書き出し |
+| 動画実行 | 独立したNode.jsワーカー、Remotion renderer（Chromium・FFmpeg入りのDockerイメージ） | 外部API呼び出しと動画書き出し |
+| 音声エンジン | VOICEVOX Engine（Docker Composeで起動） | TTSの第一候補。APIキー不要・無料 |
 | 追加処理 | FFmpeg/ffprobe | 音声・完成動画の長さ、形式検査と必要な変換 |
 | AI | Text / Image / Voiceのプロバイダーアダプター | Director、画像、TTS。鍵はサーバー側だけに置く |
+| 外部からの確認 | Tailscale（個人利用は無料） | スマホなど自分の端末からだけPCの画面に入る。インターネットには公開しない |
 
-Webのリクエストはジョブ作成後に返す。レンダリングは長時間・高負荷になり得るためワーカーで行う。ブラウザはDBとR2へ直接アクセスしない。すべてNext.jsのAPIを経由し、APIとワーカーが`workspace_id`による所有者確認を行う。
+Webのリクエストはジョブ作成後に返す。レンダリングは長時間・高負荷になり得るためワーカーで行う。ブラウザはDBとファイル保存先へ直接アクセスしない。すべてNext.jsのAPIを経由し、APIとワーカーが`workspace_id`による所有者確認を行う。
 
-**構成：** ブラウザ → Next.js API → PostgreSQLの`generation_jobs` → ワーカー（`SELECT … FOR UPDATE SKIP LOCKED`で取得） → AI/素材 → Remotion → R2 → 認証済み画面。まずは単一ワーカー・同時実行1件。ジョブ状態は画面から2秒間隔で取得する（v0.1ではリアルタイム配信を使わない）。規模が増えたら専用キューへ移行する。
+**構成：** ブラウザ → Next.js API → PostgreSQLの`generation_jobs` → ワーカー（`SELECT … FOR UPDATE SKIP LOCKED`で取得） → AI/素材 → Remotion → `StorageProvider` → 認証済み画面。まずは単一ワーカー・同時実行1件。ジョブ状態は画面から2秒間隔で取得する（v0.1ではリアルタイム配信を使わない）。規模が増えたら専用キューへ移行する。
 
-**移行性：** DBアクセスはDrizzle経由、ファイル操作は`StorageProvider`インターフェース（`put / get / delete / signedUrl`）経由に限定する。実装はR2用とローカルファイル用の2つを用意し、Phase 0aとCIはローカル実装で動かす。将来Supabase等へ移る場合もこの2か所の差し替えで済むようにする。
+**移行性：** DBアクセスはDrizzle経由、ファイル操作は`StorageProvider`インターフェース（`put / get / delete / signedUrl`）経由に限定する。v0.1はローカル実装のみ作り、クラウド移行時にCloudflare R2（S3互換）の実装を追加する。Web・ワーカー・Postgres・VOICEVOXは同じDocker Compose定義で起動し、クラウドでも同じイメージを使う。
 
-**バックアップ：** Postgresは日次で`pg_dump`を取りR2の別プレフィックスへ保存する（最低7世代）。R2上の素材原本は削除せず、古い版のMP4と中間音声のみ保持期限を設けて削除する。
+**バックアップ：** Postgresは日次で`pg_dump`を取り、PCの外（Cloudflare R2の無料枠またはGoogle Drive）へ保存する（最低7世代）。素材原本もPCの外へ同期する。古い版のMP4と中間音声は保持期限を設けて削除する。
 
 ### 推奨リポジトリ構成
 
@@ -75,9 +81,10 @@ apps/web/                 Next.jsの画面とAPI
 apps/worker/              ジョブ処理とレンダリング（Phase 0aではCLIとして実行）
 packages/contracts/       Zodスキーマと共通型
 packages/db/              Drizzleスキーマとマイグレーション
-packages/storage/         StorageProvider（R2・ローカル）
+packages/storage/         StorageProvider（v0.1はローカル、移行時にR2を追加）
 packages/video/           RemotionのテンプレートとPlayer共通部品
 packages/providers/       Text・Image・Voiceのアダプター
+docker-compose.yml        Postgres・VOICEVOX・Web・ワーカーの起動定義
 docs/                     仕様と運用手順
 ```
 
@@ -140,7 +147,7 @@ Node.jsと各ライブラリのバージョンはPhase 0bで実機動作を確�
 | `generation_costs` | `id`, `job_id`, `provider`, `model`, `unit`, `quantity`, `estimated_jpy`, `actual_jpy`, `created_at` | 見積と確定額を区別 |
 | `video_outputs` | `id`, `video_id`, `video_version`, `storage_key`, `duration_ms`, `width`, `height`, `created_at` | 完成MP4と検査値 |
 
-APIとワーカーは`workspace_id`で必ず所有者を検証する（RLSは使わない）。R2はブランド素材・音声・MP4ごとに非公開のキーへ保存し、ブラウザには署名付き短命URLのみ渡す。API鍵・DB接続情報・R2の資格情報はブラウザに渡さない。DB制約（外部キー、一意制約、CHECK）を設定し、ワーカー側もジョブ・動画・ブランドの所属関係を再確認する。
+APIとワーカーは`workspace_id`で必ず所有者を検証する（RLSは使わない）。ファイルはブランド素材・音声・MP4ごとに非公開のキーへ保存し、ブラウザには`StorageProvider`が発行する短命URL（ローカル実装では署名付きのAPI経由URL）のみ渡す。API鍵・DB接続情報・保存先の資格情報はブラウザに渡さない。DB制約（外部キー、一意制約、CHECK）を設定し、ワーカー側もジョブ・動画・ブランドの所属関係を再確認する。
 
 ### v0.1 API
 
@@ -166,7 +173,7 @@ APIとワーカーは`workspace_id`で必ず所有者を検証する（RLSは使
 2. `generate-plan`：ブランド設定と入力テーマを渡し、JSONを受け取り、スキーマ・尺・表現を検証する。検証失敗は1回だけ自動修正を試み、以降は理由を表示する。読み辞書を適用する。
 3. `render`：対象の`video_version`を固定。素材を検索し、権利情報を確認。足りない画像を予算内で生成して保存する。
 4. 各シーンのTTSを作成し実測尺を記録する。同一入力の成果物があれば再利用する。
-5. Remotionで出力し、ffprobeで形式・縦横・尺・音声トラックを検査してからR2へ保存する。
+5. Remotionで出力し、ffprobeで形式・縦横・尺・音声トラックを検査してから`StorageProvider`へ保存する。
 6. 使用量と費用を記録しジョブを完了する。失敗時は`step`、安全なエラーコード、再試行可否を残す。
 
 外部APIへの同一処理の重複課金を減らすため、呼び出し前後に生成物のキーを記録する。再試行は全工程を繰り返さず、正常な中間成果物を使う。鍵やプロンプト中の個人情報をログに出さない。
@@ -195,7 +202,7 @@ interface StorageProvider {
 
 各インターフェースに本番用1実装と、APIを使わず同じ手順を再現できるfixture/mockを用意する。Text・Imageの採用先はPhase 0bで料金・日本語品質・API利用条件を比較して1社ずつ確定する。動画AIのアダプターは実装しない。
 
-**TTSの選定：** ElevenLabs、Gemini TTS、VOICEVOXをPhase 0aで比較する。評価項目は、固有名詞・地名・数字の読みの正確さ、`narrationReading`（かな入力）を与えたときの自然さ、シーン単位で合成したときのつながり、費用、商用利用条件（VOICEVOXはキャラクターごとの規約とクレジット表記）。あわせて「シーン単位で合成」と「全文を合成してタイムスタンプで分割」のどちらにするかを聞き比べて決める。
+**TTSの選定：** v0.1の第一候補はVOICEVOX（PCで動かし無料）。Phase 0aでGemini TTS（1本約1円）・ElevenLabs（1本約5〜9円）と比較し、VOICEVOXの声質がブランドに合わない場合のみ有料の採用先に切り替える。評価項目は、固有名詞・地名・数字の読みの正確さ、`narrationReading`（かな入力）を与えたときの自然さ、シーン単位で合成したときのつながり、費用、商用利用条件（VOICEVOXはキャラクターごとの規約とクレジット表記）。あわせて「シーン単位で合成」と「全文を合成してタイムスタンプで分割」のどちらにするかを聞き比べて決める。
 
 **Directorの入力：** ブランド設定、テーマ、視聴者、想定尺、使える素材キー、字幕文字数、禁止事項、CTA、読み辞書。**出力：** 検証可能な`VideoPlan`のみ。旅行・商品・医療など事実確認が必要な主張には`needsFactCheck`を付け、v0.1では人が公開前に確認する。
 
@@ -220,7 +227,7 @@ Phase 0aの前に、対象ブランドごとに以下を用意し、制作ツー
 
 ## 7. 原価の上限
 
-ブランド別に「1本の上限」「月間上限」「画像生成枚数」を設定する。初期値の案はSTANDARD：画像最大3枚、動画AI 0秒、月間上限は管理者が入力。円換算は設定した為替レートと見積単価に基づく参考値とし、利用量と提供元の請求額を後から照合する。
+ブランド別に「1本の上限」「月間上限」「画像生成枚数」を設定する。初期値の案はSTANDARD：画像生成0枚（必要なブランドだけ上限を設定）、動画AI 0秒、月間上限は管理者が入力。DirectorはClaude Haiku 4.5やGemini Flash-Lite級の低価格モデルを標準とし、品質が足りない場合のみ上位モデルに切り替える。円換算は設定した為替レートと見積単価に基づく参考値とし、利用量と提供元の請求額を後から照合する。
 
 **v0.1の方式（事前チェック）：** 有料呼び出しの直前に「今月の確定額＋実行中ジョブの見積額＋今回の見積額」を計算し、上限を超える場合は呼び出さずに理由を画面に表示する。同時実行は1件のため競合は起きない。単価不明、または上限未設定のときも有料呼び出しを止める。
 
@@ -256,14 +263,15 @@ Phase 0aの前に、対象ブランドごとに以下を用意し、制作ツー
 | --- | --- | --- |
 | 前提 | 素材の事前準備（§6） | 1ブランド分のキャラ・表情・背景・BGMが登録用に揃い、利用権が記録されている |
 | 0a. 品質検証 | 画面・DB・認証なしのCLIで、テーマ → Director → TTS → Remotion → MP4 を実行。`packages/contracts`・`video`・`providers`・`storage`（ローカル実装）を作る。TTS 3社の比較 | 1ブランド5本を生成し、4本以上が「軽微な修正で投稿可能」。キャラの一貫性、TTSの読み、字幕の同期を人が判定する。TTSの採用先と合成方式を決定 |
-| 0b. 環境確定 | Railway（Postgres・Web・ワーカー）とR2の用意、Chromium・FFmpeg入りのワーカーコンテナ、Text・Imageの採用先と単価・規約の記録 | ワーカーコンテナで0aと同じMP4がRailway上で書き出せる。採用先・概算単価・規約を記録 |
-| 1. 基盤 | monorepo、CI、ログイン、Drizzleのマイグレーション、所有者確認、ブランド画面、R2の`StorageProvider`、日次バックアップ | 未ログインでAPIにアクセスできない。ブランドの作成・更新ができる。バックアップから復元できる |
+| 0b. 環境確定 | Docker Compose（Postgres・VOICEVOX・ワーカー）の用意、Chromium・FFmpeg入りのワーカーイメージ、Textの採用先と単価・規約の記録、Tailscaleの設定（任意） | `docker compose up`だけで0aと同じMP4が書き出せる。採用先・概算単価・規約を記録 |
+| 1. 基盤 | monorepo、CI、ログイン、Drizzleのマイグレーション、所有者確認、ブランド画面、日次バックアップ（PCの外へ保存） | 未ログインでAPIにアクセスできない。ブランドの作成・更新ができる。バックアップから復元できる |
 | 2. 台本 | Director、スキーマ検証、plan API、編集画面、読み辞書、fixture | テーマから5〜8シーンの修正可能な計画が保存される |
 | 3. 素材・音声 | 素材登録、検索、画像生成、TTS、尺計算、原価の事前チェック | 不足素材のみ作成し、字幕・音声・計画尺を整合させる。上限超過で有料呼び出しが止まる |
 | 4. 動画 | Player、ワーカーのジョブ処理とレンダリング、MP4検査 | ブラウザのプレビューと完成MP4の内容が一致する |
 | 5. 運用 | ジョブ回復、部分的な再生成、ダウンロード、計測、保持期限による削除、手順書 | 失敗から復旧し、連続30本の評価に進める |
+| 6. クラウド移行（任意） | 30本評価の合格後、必要な場合のみ実施。R2の`StorageProvider`追加、§11の比較表から配置先を選んでデプロイ | ローカルと同じイメージがクラウドで動き、DBと素材を移行できる |
 
-各Phaseは小さなPRに分け、型検査・lint・必要な自動テスト・手動の動作確認後にマージする。DB変更と画面変更は同じPRで互換性を確認する。Phase 0a・0b以外は鍵なしfixtureとローカルの`StorageProvider`でCIを通す。
+各Phaseは小さなPRに分け、型検査・lint・必要な自動テスト・手動の動作確認後にマージする。DB変更と画面変更は同じPRで互換性を確認する。Phase 0a・0b以外は鍵なしfixtureとローカルの`StorageProvider`でCIを通す。VOICEVOXを使うテストもfixtureの音声で代替する。
 
 ### AIコーディングツールへの作業単位
 
@@ -284,9 +292,10 @@ Phase 0aの前に、対象ブランドごとに以下を用意し、制作ツー
 | 最初の題材 | ギフトまたは北海道旅行から1ブランドを選ぶ |
 | 画像スタイル・素材 | 既存の縦型ゆるアニメ素材を参照候補とし、§6の事前準備で制作ツールと担当者を決める |
 | Text / Image API | Phase 0bで現行料金・商用利用条件・品質を確認して決定 |
-| Voice API | Phase 0aでElevenLabs / Gemini TTS / VOICEVOXを比較して決定 |
+| Voice API | VOICEVOXを第一候補とし、Phase 0aでGemini TTS / ElevenLabsと比較して決定。VOICEVOXはキャラクターごとの利用規約とクレジット表記を記録する |
 | 1本・月間予算 | 実際の見積を見て利用者が設定。上限未設定なら有料生成を開始しない |
-| 配置先 | Railway（Postgres・Web・ワーカー）＋Cloudflare R2で確定。Vercelの無料プランは商用利用が禁止のため使わない |
+| 配置先 | v0.1〜30本評価はローカルPC。クラウドは評価合格後に下の比較表から選ぶ。Vercelの無料プランは商用利用が禁止のため使わない |
+| 画像生成 | v0.1の標準は0枚。素材の事前準備で賄う |
 | BGM | 商用利用可能な1曲を固定で使う。動画ごとにオフにできる |
 | ファイル保持 | 素材原本は保持。古い版のMP4と中間音声は保持期限（例：30日）後に削除 |
 
@@ -294,22 +303,27 @@ Phase 0aの前に、対象ブランドごとに以下を用意し、制作ツー
 
 料金は変わるため、採用時に必ず公式の最新値を設定へ記録する。
 
-**1本あたりのAPI原価：約15〜60円**
+**v0.1（ローカルPC・標準設定）の1本あたりAPI原価：約1〜2円**
 
-| 処理 | 1本あたり |
-| --- | --- |
-| 台本（Director） | 約2〜8円 |
-| 画像（0〜3枚） | 0〜30円 |
-| 音声 | 約1〜9円 |
+| 処理 | 標準設定 | 1本あたり | 上位設定にした場合 |
+| --- | --- | --- | --- |
+| 台本（Director） | Claude Haiku 4.5 / Gemini Flash-Lite級 | 約1〜2円 | Sonnet級：約4〜8円 |
+| 画像 | 生成しない | 0円 | 1枚あたり約6〜10円（最大3枚） |
+| 音声 | VOICEVOX（PCで実行） | 0円 | Gemini TTS：約1円、ElevenLabs：約5〜9円 |
 
-**月額（月60本の場合）：約5,000〜8,000円**
+**v0.1の月額：約0〜200円（月60本）**
 
-| 項目 | 月額 |
-| --- | --- |
-| Railway Hobby | 月5ドル（使用量5ドル分込み）。Postgres・Web・ワーカーの使用量次第で合計約10〜20ドル |
-| Cloudflare R2 | 10GBまで無料、ダウンロードの転送料無料 |
-| TTSの月額プラン | 0〜22ドル（採用先による） |
-| API原価 | 約1,000〜3,600円 |
+サーバー、DB、ファイル保存はPC上で動かすので0円。バックアップ先はCloudflare R2の無料枠（10GB）かGoogle Driveを使う。PCの電気代は別。
+
+### 評価合格後のクラウド配置候補
+
+| 候補 | 月額目安 | 特徴 |
+| --- | --- | --- |
+| Oracle Cloud Always Free | 0円 | 2コア/12GBのサーバーとディスク200GBが無料。アカウント審査やリージョンの空き状況で使えないことがある。7日間CPU・通信・メモリがすべて20%未満だと回収される。サーバー管理は自分で行う |
+| Google Cloud Run＋Neon Free＋R2 | 0〜$5 | 使わない間は0円。東京リージョンあり。GCPの初期設定が必要 |
+| Hetzner VPS＋Coolify | 約1,400〜2,000円 | 4コア/8GBで€8.49。性能あたりの価格が最安。サーバー管理は自分で行う |
+| Railway＋R2 | 約1,500〜3,000円 | 1か所にまとまり、サーバー管理がほぼ不要。使った分だけ課金 |
+| Render | 約$38〜 | 定額で読みやすいが割高 |
 
 **Remotion：** 3人以下の会社は無料で商用利用できる。4人以上になるか、顧客向けにサーバーで書き出す段階では会社向けライセンスが必要（書き出し用途は最低月100ドル）。事業化判断の材料に含める。
 
@@ -328,6 +342,11 @@ Phase 0aの前に、対象ブランドごとに以下を用意し、制作ツー
 - [Remotion：ライセンス](https://www.remotion.pro/license)
 - [Next.js：Route Handlers](https://nextjs.org/docs/app/getting-started/route-handlers)
 - [Drizzle ORM](https://orm.drizzle.team/docs/overview)
+- [VOICEVOX](https://voicevox.hiroshiba.jp/)
+- [Tailscale：料金](https://tailscale.com/pricing)
+- [Oracle Cloud Always Free](https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm)
+- [Neon：料金](https://neon.com/pricing)
+- [Google Cloud Run：料金](https://cloud.google.com/run/pricing)
 - [Railway：料金](https://railway.com/pricing)
 - [Cloudflare R2：料金](https://developers.cloudflare.com/r2/pricing/)
 - [BudouX](https://github.com/google/budoux)

@@ -34,9 +34,15 @@ for (const [key, color] of assets) {
   const filename = `${key.replace("/", "__")}.svg`;
   const relativePath = filename;
   const label = key.replace("/", " ");
+  const isBackground = ["shop_shelf", "room_warm", "desk"].includes(key);
+  const artwork = isBackground
+    ? `<rect width="1080" height="1920" fill="${color}"/><circle cx="540" cy="900" r="420" fill="#ffffff" fill-opacity=".55"/>`
+    : key === "gift_girl" || key.startsWith("gift_girl/")
+      ? `<rect x="360" y="430" width="360" height="760" rx="180" fill="${color}"/><circle cx="540" cy="360" r="150" fill="#FFE0D2"/>`
+      : `<rect x="390" y="700" width="300" height="260" rx="28" fill="${color}" stroke="#4A3B36" stroke-width="12"/>`;
   await writeFile(
     path.join(assetRoot, filename),
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920"><rect width="1080" height="1920" fill="${color}"/><circle cx="540" cy="760" r="260" fill="#ffffff" fill-opacity=".55"/><text x="540" y="1040" text-anchor="middle" font-family="sans-serif" font-size="54" fill="#4A3B36">${label}</text></svg>\n`,
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920">${artwork}<text x="540" y="1280" text-anchor="middle" font-family="sans-serif" font-size="42" fill="#4A3B36">${label}</text></svg>\n`,
     "utf8",
   );
   manifest[key] = {

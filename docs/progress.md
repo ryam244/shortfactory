@@ -31,6 +31,7 @@ JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC
 - ローカルテストランナー：JSON台本＋登録SVG素材＋VOICEVOX＋Remotion MP4を成功
 - `pipeline:test`の生成物は`text/voice/assets: test`として記録し、Phase 0aの品質判定から自動除外
 - 素材マニフェストに`source`と`rightsNote`を必須化し、利用権情報なしの素材を拒否
+- テスト動画を目視確認し、登録素材が透明背景のキャラ・小物として描画され、字幕が表示されることを確認
 - 最終テスト動画：1080×1920、30fps、H.264、AAC、約28.5秒
 - Phase 0a人手評価：0/5。実素材・実Directorが未接続のため、品質判定はまだ開始しない
 

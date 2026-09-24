@@ -9,6 +9,7 @@
 | --- | --- |
 | `packages/contracts` | `VideoPlan`・`BrandKit`のZodスキーマ、内容検証（禁止語・役割・字幕長・素材キー）、読み辞書、尺とフレームの計算、ギフトブランドのfixture |
 | `packages/providers` | 外部APIなしでDirector/Voiceの入出力契約を確認するfixtureプロバイダー（実TTSは未接続） |
+| `packages/assets` | asset keyをローカル素材ファイルからRemotion用data URLへ解決する実装 |
 | `packages/storage` | CLI/ワーカー向けのローカル保存実装。キー検証、原子的保存、取得・削除、content typeメタデータ、ローカルURL |
 | `packages/video` | Remotionの`yuru_anime_v1`テンプレート（仮素材で描画）、サンプル書き出しスクリプト |
 
@@ -21,6 +22,8 @@
 VOICEVOX Engineを起動した環境では、`SHORTFACTORY_VOICE_PROVIDER=voicevox VOICEVOX_SPEAKER=3 pnpm --filter @shortfactory/video pipeline:fixture -- "春の手土産"` で実音声を取得できる。音声はローカルStorageにシーン単位のWAVとして保存し、RemotionのMP4にも組み込む。
 
 `pipeline:fixture:batch` はPhase 0aの5本評価用に、テーマごとに別MP4・計画JSON・音声メタデータを生成する。固定fixtureの通過確認であり、自然音声や実素材の品質評価ではない。
+
+ローカル素材を登録して描画する場合は、asset keyをキーにしたJSONマニフェストを用意し、`SHORTFACTORY_ASSET_MANIFEST=/path/assets.json SHORTFACTORY_ASSET_ROOT=/path/assets pnpm --filter @shortfactory/video pipeline:fixture -- "春の手土産"` を実行する。各値は `{ "path": "相対パス", "contentType": "image/png" }` 形式で、パスはAssetProviderのroot外へ出られない。素材が登録されると、生成記録の`assets`が`registered`になる。
 
 生成時に使った台本・音声・素材の種類を `storage/<id>/run.json` に記録する。`evaluation:summary` は、台本・音声・素材がすべて実物の動画だけをPhase 0aの判定対象にし、fixtureや仮素材を含む場合は「判定対象外（配線の確認のみ）」と表示する。合格には、判定対象の5本で技術検証が全件合格し、人手評価で4本以上が `postable_with_minor_edits` であることが必要。
 

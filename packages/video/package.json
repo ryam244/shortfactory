@@ -34,6 +34,7 @@
     "@remotion/cli": "4.0.527",
     "@remotion/renderer": "4.0.527",
     "@types/node": "^22.20.4",
+    "@shortfactory/assets": "workspace:*",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "tsx": "^4.23.15",

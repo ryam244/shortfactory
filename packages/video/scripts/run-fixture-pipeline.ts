@@ -5,10 +5,11 @@
  */
 import { bundle } from "@remotion/bundler";
 import { renderMedia, selectComposition } from "@remotion/renderer";
+import { LocalAssetProvider, type LocalAssetManifest } from "@shortfactory/assets";
 import { resolveSceneTiming, ttsTextForScene } from "@shortfactory/contracts";
 import { createGiftFixtureProviders, VoicevoxProvider } from "@shortfactory/providers";
 import { LocalStorageProvider } from "@shortfactory/storage";
-import { mkdir } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { COMPOSITION_ID, type YuruAnimeProps } from "../src/props";
@@ -17,6 +18,7 @@ import type { GenerationSources } from "./lib/evaluation";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const outputDir = path.resolve(here, "../out", process.env.SHORTFACTORY_OUTPUT_DIR ?? "fixture-pipeline");
 const outputName = process.env.SHORTFACTORY_OUTPUT_NAME ?? "gift-sample";
+const assetManifestPath = process.env.SHORTFACTORY_ASSET_MANIFEST;
 const outputLocation = path.join(outputDir, `${outputName}.mp4`);
 const browserExecutable = process.env.REMOTION_BROWSER_EXECUTABLE ?? null;
 const cliArgs = process.argv.slice(2);
@@ -46,6 +48,19 @@ const timing = resolveSceneTiming(
 );
 if (timing.outOfRange) throw new Error(`生成計画の総尺が範囲外です: ${timing.totalMs}ms`);
 
+const assetKeys = plan.scenes.flatMap((scene) => [
+  scene.visual.backgroundKey,
+  scene.visual.characterKey,
+  ...(scene.visual.expressionKey ? [`${scene.visual.characterKey}/${scene.visual.expressionKey}`] : []),
+  ...scene.visual.objectKeys,
+]);
+const assets = assetManifestPath
+  ? await new LocalAssetProvider(
+      process.env.SHORTFACTORY_ASSET_ROOT ?? path.dirname(path.resolve(assetManifestPath)),
+      JSON.parse(await readFile(assetManifestPath, "utf8")) as LocalAssetManifest,
+    ).resolve(assetKeys)
+  : {};
+
 const storage = new LocalStorageProvider(path.join(outputDir, "storage", outputName));
 await storage.put(`plans/${outputName}.json`, new TextEncoder().encode(JSON.stringify(plan, null, 2)), "application/json");
 // 評価時に「何で作った動画か」を判別できるよう、使った実装を記録する
@@ -53,7 +68,7 @@ const sources: GenerationSources = {
   text: "fixture",
   voice: process.env.SHORTFACTORY_VOICE_PROVIDER === "voicevox" ? "voicevox" : "fixture",
   voiceId,
-  assets: "placeholder",
+  assets: assetManifestPath ? "registered" : "placeholder",
 };
 await storage.put("run.json", new TextEncoder().encode(JSON.stringify({ topic, sources }, null, 2)), "application/json");
 await Promise.all(
@@ -75,7 +90,7 @@ const props: YuruAnimeProps = {
   plan,
   brand: fixtureProviders.brand,
   sceneFrames: timing.sceneFrames,
-  assets: {},
+  assets,
   sceneAudio,
   bgmUrl: null,
   showSafeZone: process.env.SHORTFACTORY_SHOW_SAFE_ZONE === "1",

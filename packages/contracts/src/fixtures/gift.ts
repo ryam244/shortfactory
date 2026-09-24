@@ -1,0 +1,121 @@
+import type { BrandKitInput } from "../brand-kit";
+import type { VideoPlanInput } from "../video-plan";
+
+/** Phase 0a用のギフトブランド（仮）。色や文体は素材が揃った段階で差し替える。 */
+export const giftBrandFixture: BrandKitInput = {
+  name: "ギフト（仮）",
+  style: "淡い色の手描き風ゆるアニメ。線は柔らかく、影は最小限",
+  colors: {
+    background: "#FFF6EE",
+    primary: "#F2A7A0",
+    accent: "#8CC7B8",
+    text: "#4A3B36",
+    captionBackground: "#FFFFFF",
+  },
+  font: "zen_maru_gothic",
+  tone: "親しみやすい話し言葉。断定しすぎず、押し付けない",
+  bannedWords: ["絶対", "最強", "必ず喜ばれる"],
+  cta: "保存して次の手土産に",
+  readingDict: {
+    手土産: "てみやげ",
+    個包装: "こほうそう",
+  },
+  captionMaxChars: 16,
+  voice: { provider: "voicevox", voiceId: "unset" },
+  budget: { maxGeneratedImages: 0 },
+};
+
+/** 仮素材のキー一覧。素材の事前準備で実素材に置き換える。 */
+export const giftAssetKeysFixture = [
+  "gift_girl",
+  "smile",
+  "think",
+  "surprise",
+  "room_warm",
+  "shop_shelf",
+  "desk",
+  "gift_box",
+  "cookie",
+  "card",
+] as const;
+
+export const giftPlanFixture: VideoPlanInput = {
+  schemaVersion: 1,
+  template: "yuru_anime_v1",
+  brandId: "gift-sample",
+  title: "手土産で迷わない3つのコツ",
+  fps: 30,
+  scenes: [
+    {
+      id: "scene-01",
+      role: "hook",
+      narration: "手土産選び、迷ったらこの3つを思い出して。",
+      caption: "手土産で迷わない3つのコツ",
+      visual: { characterKey: "gift_girl", expressionKey: "think", backgroundKey: "shop_shelf", objectKeys: ["gift_box"] },
+      motion: "slow_zoom",
+      minDurationMs: 3_500,
+      maxDurationMs: 5_000,
+    },
+    {
+      id: "scene-02",
+      role: "body",
+      narration: "ひとつめ。日持ちするものを選ぶこと。",
+      caption: "①日持ちするもの",
+      visual: { characterKey: "gift_girl", expressionKey: "smile", backgroundKey: "shop_shelf", objectKeys: ["cookie"] },
+      motion: "pan_right",
+      minDurationMs: 4_000,
+      maxDurationMs: 5_500,
+    },
+    {
+      id: "scene-03",
+      role: "body",
+      narration: "相手がすぐに食べなくても、気をつかわせません。",
+      caption: "すぐ食べなくてもOK",
+      visual: { characterKey: "gift_girl", expressionKey: "smile", backgroundKey: "room_warm", objectKeys: [] },
+      motion: "slow_zoom",
+      minDurationMs: 4_000,
+      maxDurationMs: 5_500,
+    },
+    {
+      id: "scene-04",
+      role: "body",
+      narration: "ふたつめ。個包装で分けやすいもの。",
+      caption: "②個包装で分けやすい",
+      visual: { characterKey: "gift_girl", expressionKey: "surprise", backgroundKey: "desk", objectKeys: ["cookie", "gift_box"] },
+      motion: "bounce",
+      minDurationMs: 4_000,
+      maxDurationMs: 5_500,
+    },
+    {
+      id: "scene-05",
+      role: "body",
+      narration: "家族や職場でも配りやすくて、気軽に渡せます。",
+      caption: "家族や職場でも配りやすい",
+      visual: { characterKey: "gift_girl", expressionKey: "smile", backgroundKey: "room_warm", objectKeys: ["gift_box"] },
+      motion: "pan_left",
+      minDurationMs: 4_000,
+      maxDurationMs: 5_500,
+    },
+    {
+      id: "scene-06",
+      role: "body",
+      narration: "みっつめ。選んだ理由をカードに一言そえること。",
+      caption: "③理由を一言そえる",
+      visual: { characterKey: "gift_girl", expressionKey: "smile", backgroundKey: "desk", objectKeys: ["card"] },
+      motion: "slide_up",
+      minDurationMs: 4_000,
+      maxDurationMs: 5_500,
+    },
+    {
+      id: "scene-07",
+      role: "cta",
+      narration: "次の手土産選びのために、保存しておいてね。",
+      caption: "保存して次の手土産に",
+      visual: { characterKey: "gift_girl", expressionKey: "smile", backgroundKey: "room_warm", objectKeys: ["gift_box"] },
+      motion: "bounce",
+      minDurationMs: 4_500,
+      maxDurationMs: 6_000,
+    },
+  ],
+  cta: "保存して次の手土産に",
+};

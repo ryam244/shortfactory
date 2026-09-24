@@ -10,6 +10,11 @@
   },
   "scripts": {
     "studio": "remotion studio src/remotion-entry.ts",
+    "pipeline:fixture": "tsx scripts/run-fixture-pipeline.ts",
+    "pipeline:fixture:batch": "tsx scripts/run-fixture-batch.ts",
+    "evaluation:manifest": "tsx scripts/create-evaluation-manifest.ts",
+    "evaluation:technical": "tsx scripts/check-technical-evaluation.ts",
+    "evaluation:summary": "tsx scripts/summarize-evaluation.ts",
     "render:sample": "tsx scripts/render-sample.ts",
     "typecheck": "tsc -p tsconfig.json",
     "test": "echo \"no tests yet\""
@@ -17,6 +22,8 @@
   "dependencies": {
     "@remotion/fonts": "4.0.527",
     "@shortfactory/contracts": "workspace:*",
+    "@shortfactory/providers": "workspace:*",
+    "@shortfactory/storage": "workspace:*",
     "budoux": "^0.9.2",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",

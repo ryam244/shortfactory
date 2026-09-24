@@ -1,6 +1,6 @@
 # Short Factory 進行表
 
-最終更新：2026-09-24 22:58 JST
+最終更新：2026-09-24 23:00 JST
 基準文書：[master-plan.md](./master-plan.md)
 
 ## 現在地
@@ -69,6 +69,7 @@ JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC
 - `evaluation:fixture:30`、`evaluation:manifest:30`、`evaluation:technical:30`、`evaluation:summary:30`を追加。`fixture-30`へ30本を生成・検証できるが、fixture動画は品質合格数へ算入しない
 - 30本fixture評価を実行し、`packages/video/out/fixture-30/`へMP4を30本生成。manifestは全30本に音声トラックあり、技術検証は30/30で合格
 - 30本fixtureの集計は品質判定対象0/30・人手評価0/30・投稿可能0/30となり、Phase 0a/実素材評価の合格数には算入しないことを確認
+- Render Workerの保存済みTTS経路を修正し、fixture固定尺ではなく実測したWAV／合成音声の尺でシーン時間を計算するよう統一。videoパッケージの型チェックと全体テストに合格
 - `fixtureVoiceDurationMs`を契約層へ追加し、Preview・Worker・FixtureVoiceProviderが同じ音声尺からシーンフレームを計算するよう統一
 - 保存済み`tts_scene_XX_*`素材がある場合は、実測WAV尺と音声データをPreview・Workerで利用。未生成シーンはfixtureへフォールバックする
 - Video Studioが選択ブランドの登録素材を取得し、認証済みcontent URLをPreviewへ渡す。未登録キーは既存のプレースホルダー描画を使う

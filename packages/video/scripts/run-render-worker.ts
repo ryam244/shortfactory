@@ -1,7 +1,7 @@
 import { bundle } from "@remotion/bundler";
 import { renderMedia, selectComposition } from "@remotion/renderer";
 import { and, asc, eq } from "drizzle-orm";
-import { brandKitSchema, fixtureVoiceDurationMs, giftAssetKeysFixture, resolveSceneTiming, ttsTextForScene, validateVideoPlan, type VideoPlan } from "@shortfactory/contracts";
+import { brandKitSchema, giftAssetKeysFixture, resolveSceneTiming, ttsTextForScene, validateVideoPlan, type VideoPlan } from "@shortfactory/contracts";
 import { createDb, assets, brands, generationJobs, videoOutputs, videos } from "@shortfactory/db";
 import { FixtureVoiceProvider, parseWavDurationMs } from "@shortfactory/providers";
 import { LocalStorageProvider } from "@shortfactory/storage";
@@ -50,7 +50,8 @@ async function runOnce(): Promise<boolean> {
       const audio = await voiceProvider.synthesize({ text: ttsTextForScene(scene, brand.readingDict), voiceId: brand.voice.voiceId });
       return { audio, durationMs: audio.durationMs };
     }));
-    const timing = resolveSceneTiming(plan.scenes.map((scene) => ({ scene, narrationMs: fixtureVoiceDurationMs(scene.narration) })), plan.fps);
+    // 保存済みTTSまたは今回合成した音声の実測尺を、Previewと同じくシーン時間の根拠にする。
+    const timing = resolveSceneTiming(plan.scenes.map((scene, index) => ({ scene, narrationMs: voiceDurations[index]!.durationMs })), plan.fps);
     if (timing.outOfRange) throw new Error("plan_duration_out_of_range");
     const resolvedAssets: Record<string, string> = {};
     await Promise.all(assetRows.map(async (asset) => {

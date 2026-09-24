@@ -35,6 +35,9 @@ importers:
 
   packages/db:
     dependencies:
+      '@shortfactory/contracts':
+        specifier: workspace:*
+        version: link:../contracts
       drizzle-orm:
         specifier: ^0.44.7
         version: 0.44.7(@types/pg@8.23.1)(pg@8.23.0)

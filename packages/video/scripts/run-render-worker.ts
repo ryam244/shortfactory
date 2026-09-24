@@ -6,6 +6,7 @@ import { createDb, assets, brands, generationJobs, videoOutputs, videos } from "
 import { FixtureVoiceProvider } from "@shortfactory/providers";
 import { LocalStorageProvider } from "@shortfactory/storage";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,7 +14,9 @@ import { COMPOSITION_ID, VIDEO_HEIGHT, VIDEO_WIDTH, type YuruAnimeProps } from "
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const browserExecutable = process.env.REMOTION_BROWSER_EXECUTABLE ?? null;
-const storage = new LocalStorageProvider(process.env.SHORTFACTORY_STORAGE_ROOT ?? path.resolve(process.cwd(), "storage"));
+const cwd = process.cwd();
+const storageBaseDir = existsSync(path.resolve(cwd, "pnpm-workspace.yaml")) ? cwd : existsSync(path.resolve(cwd, "../..", "pnpm-workspace.yaml")) ? path.resolve(cwd, "../..") : cwd;
+const storage = new LocalStorageProvider(path.resolve(storageBaseDir, process.env.SHORTFACTORY_STORAGE_ROOT ?? "storage"));
 const { db, pool } = createDb();
 
 async function runOnce(): Promise<boolean> {

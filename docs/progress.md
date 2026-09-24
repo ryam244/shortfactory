@@ -1,6 +1,6 @@
 # Short Factory 進行表
 
-最終更新：2026-09-24 20:33 JST
+最終更新：2026-09-24 21:55 JST
 基準文書：[master-plan.md](./master-plan.md)
 
 ## 現在地
@@ -62,6 +62,7 @@ JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC
 - `POST/GET /api/videos/:id/render`を追加。保存済み台本から所有者確認付きrenderジョブを`queued`で登録・一覧取得できる（Worker未接続のため完成扱いにしない）
 - `pnpm --filter @shortfactory/video worker:render`を追加。queuedジョブを1件claimし、RemotionでH.264/AAC MP4を書き出し、ローカルStorageと`video_outputs`へ保存して成功・失敗を更新する
 - `pnpm --filter @shortfactory/video worker:render:watch`を追加。5秒間隔でrenderジョブを監視し、Studioは状態を追跡する。`GET /api/videos/:id/output`で完成MP4を所有者確認付きでダウンロードできる
+- pnpmのパッケージ別実行でもWebとWorkerが同じ相対Storageを参照するよう、`INIT_CWD`基準のStorageパス解決を追加
 - `POST /api/videos/:id/scenes/:sceneId/regenerate`を追加。versionを照合し、対象シーンだけをfixture Directorで差し替えて保存する
 - 最終テスト動画：1080×1920、30fps、H.264、AAC、約28.5秒
 - Phase 0a人手評価：0/5。実素材・実Directorが未接続のため、品質判定はまだ開始しない

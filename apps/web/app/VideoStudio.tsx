@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { BrandKit, Scene, VideoPlan } from "@shortfactory/contracts";
+import { PreviewPlayer } from "./PreviewPlayer";
 
 type Workspace = { id: string; name: string };
-type Brand = { id: string; workspaceId: string; name: string };
+type Brand = { id: string; workspaceId: string; name: string; kit: BrandKit };
 type Video = { id: string; workspaceId: string; brandId: string; topic: string; version: number; status: string };
-type Scene = { id: string; role: string; narration: string; caption: string; [key: string]: unknown };
-type Plan = { title: string; scenes: Scene[]; cta: string; [key: string]: unknown };
+type Plan = VideoPlan;
 type CostSummary = { estimatedJpy: string; costs: Array<{ provider: string; model: string; unit: string; estimatedJpy: string }> };
 
 export default function VideoStudio() {
@@ -91,6 +92,7 @@ export default function VideoStudio() {
   }
 
   const visibleBrands = brands.filter((brand) => brand.workspaceId === workspaceId);
+  const selectedBrand = brands.find((brand) => brand.id === brandId);
   return <section>
     <h2>動画テスト</h2>
     <label>Workspace<select value={workspaceId} onChange={(event) => { setWorkspaceId(event.target.value); setBrandId(""); }}><option value="">選択してください</option>{workspaces.map((workspace) => <option key={workspace.id} value={workspace.id}>{workspace.name}</option>)}</select></label>
@@ -99,6 +101,7 @@ export default function VideoStudio() {
     <button onClick={createAndGenerate} disabled={busy}>{busy ? "処理中…" : "動画を作成して台本生成"}</button>
     {video && <p>動画ID: {video.id} / version: {video.version}</p>}
     {costSummary && <p>見積原価：¥{costSummary.estimatedJpy}（fixtureは実費0円）</p>}
+    {plan && selectedBrand && <><h3>動画プレビュー</h3><PreviewPlayer plan={plan} brand={selectedBrand.kit} /></>}
     {plan && <div><h3>台本編集</h3><label>タイトル<input value={plan.title} onChange={(event) => setPlan({ ...plan, title: event.target.value })} /></label>
       {plan.scenes.map((scene, index) => <fieldset key={scene.id}><legend>{scene.id} ({scene.role})</legend><label>ナレーション<textarea value={scene.narration} onChange={(event) => updateScene(index, "narration", event.target.value)} /></label><button type="button" onClick={() => void regenerateScene(scene)} disabled={busy}>このシーンを再生成</button><button type="button" onClick={() => void previewVoice(scene)} disabled={previewingScene === scene.id || busy}>{previewingScene === scene.id ? "音声生成中…" : "音声を試聴"}</button>{audioUrls[scene.id] && <audio controls src={audioUrls[scene.id]} /> }<label>字幕<input value={scene.caption} onChange={(event) => updateScene(index, "caption", event.target.value)} /></label></fieldset>)}
       <label>CTA<input value={plan.cta} onChange={(event) => setPlan({ ...plan, cta: event.target.value })} /></label><button onClick={savePlan} disabled={busy}>台本を保存</button>

@@ -1,6 +1,6 @@
 # Short Factory 進行表
 
-最終更新：2026-09-24 23:32 JST
+最終更新：2026-09-24 23:45 JST
 基準文書：[master-plan.md](./master-plan.md)
 
 ## 現在地
@@ -16,7 +16,7 @@ JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC
 | 前提：素材準備 | 未完了 | asset key、ローカル素材マニフェストの契約 | 実ブランドのキャラ・表情・背景・小物・BGMと利用権情報を揃える |
 | 0a：品質検証 | 配線完了・品質判定待ち | `VideoPlan`、fixture、JSON台本、VOICEVOX、Storage、Remotion、技術検証 | 実台本＋実素材で5本生成し、人手評価4/5以上。TTS候補と合成方式を決定 |
 | 0b：環境確定 | 一部着手・イメージ起動待ち | VOICEVOX単体Docker運用、Postgres、Web・WorkerのCompose定義、Chromium・FFmpeg入りDockerfile | Dockerイメージのビルド・`docker compose up`実起動、Text API・単価・規約の記録 |
-| 1：基盤 | 一部完了 | Next.jsのログイン画面、DBユーザー認証、署名セッション、未ログイン拒否、Workspace作成、所有者確認付きブランド一覧・登録API、ブランド設定画面、冪等な初期ユーザー／Workspace seed、PostgresバックアップCLI（既定7世代保持）、GitHub Actionsのテスト・型チェック・Webビルド | CIのGitHub上実行確認、バックアップのPC外同期・復元、初回ユーザー作成の実機確認 |
+| 1：基盤 | 一部完了 | Next.jsのログイン画面、DBユーザー認証、署名セッション、未ログイン拒否、Workspace作成、所有者確認付きブランド一覧・登録API、ブランド設定画面、冪等な初期ユーザー／Workspace seed、PostgresバックアップCLI（既定7世代保持）、GitHub Actionsのテスト・型チェック・Webビルド、DB接続ヘルスチェックAPI | CIのGitHub上実行確認、バックアップのPC外同期・復元、初回ユーザー作成の実機確認 |
 | 2：台本 | 一部完了 | `VideoPlan`、JSON台本Provider、読み辞書・検証、動画作成API、fixture Directorによる台本生成・保存API、version照合付き台本編集API、最小台本編集画面 | 外部Director接続、UIの実機操作確認、ジョブ化 |
 | 3：素材・音声 | 一部完了 | `StorageProvider`、`AssetProvider`、VOICEVOX、尺計算、素材メタデータ登録・一覧API、ローカルStorageへのファイルアップロード・所有者付き配信API、アップロードMIMEタイプ保存・配信、素材検索・種類フィルター・権利情報表示UI、画像生成Provider前のブランド別上限ガード、生成ジョブ・見積原価の記録と動画単位集計、VOICEVOX試聴API・台本画面接続、シーン単位の部分再生成API・UI、TTS音声のStorage永続保存と素材登録 | Provider別単価・実費確定 |
 | 4：動画 | 一部完了 | Remotionテンプレート、MP4、ffprobe技術検証、安全域、Web Studio内Remotion Playerプレビュー、登録素材のPreview反映、所有者確認付きrenderジョブ登録・状態API、ローカルrender Workerの1件処理・常駐監視・MP4 Storage保存・`video_outputs`登録、MP4ダウンロードAPI、最大3回のrender自動再試行、Preview/Worker共通のfixture音声尺、保存済みVOICEVOX音声のPreview/Worker利用、DB出力の自動整合検証コマンド | 実素材・実音声でのプレビューとMP4の一致確認 |
@@ -73,6 +73,7 @@ JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC
 - Web・Worker・Postgres・VOICEVOXを同じComposeから起動する定義と、Chromium・FFmpegを含む共通Dockerfileを追加。`docker compose config`は成功したが、初回ビルドはディスクI/Oエラー、除外設定後の再ビルドはDocker内部I/O待ちで停止したため、Compose実起動は未確認
 - `pnpm --filter @shortfactory/db db:backup`を追加。`pg_dump`のcustom形式でバックアップし、既定で直近7世代を保持する。dbパッケージの型チェックは成功したが、ホストに`pg_dump`がないため実バックアップは未実行。PC外への同期と復元テストも未確認
 - `.github/workflows/ci.yml`を追加。Node.js 22・pnpmで依存インストール、全体テスト、全体型チェック、WebビルドをPull Requestとmain/master pushで実行する
+- `GET /api/health`を追加し、DBの`select 1`まで成功した場合だけ200を返すようにした。ComposeのWeb healthcheckから利用する
 - `fixtureVoiceDurationMs`を契約層へ追加し、Preview・Worker・FixtureVoiceProviderが同じ音声尺からシーンフレームを計算するよう統一
 - 保存済み`tts_scene_XX_*`素材がある場合は、実測WAV尺と音声データをPreview・Workerで利用。未生成シーンはfixtureへフォールバックする
 - Video Studioが選択ブランドの登録素材を取得し、認証済みcontent URLをPreviewへ渡す。未登録キーは既存のプレースホルダー描画を使う

@@ -32,6 +32,11 @@ services:
       dockerfile: Dockerfile
     ports:
       - "${WEB_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-shortfactory}:${POSTGRES_PASSWORD:-shortfactory-local-only}@postgres:5432/${POSTGRES_DB:-shortfactory}
       SHORTFACTORY_STORAGE_ROOT: /data/storage

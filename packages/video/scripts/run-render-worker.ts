@@ -14,6 +14,7 @@ import { COMPOSITION_ID, VIDEO_HEIGHT, VIDEO_WIDTH, type YuruAnimeProps } from "
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const browserExecutable = process.env.REMOTION_BROWSER_EXECUTABLE ?? null;
+const MAX_RENDER_ATTEMPTS = 3;
 const cwd = process.cwd();
 const storageBaseDir = existsSync(path.resolve(cwd, "pnpm-workspace.yaml")) ? cwd : existsSync(path.resolve(cwd, "../..", "pnpm-workspace.yaml")) ? path.resolve(cwd, "../..") : cwd;
 const storage = new LocalStorageProvider(path.resolve(storageBaseDir, process.env.SHORTFACTORY_STORAGE_ROOT ?? "storage"));
@@ -68,8 +69,9 @@ async function runOnce(): Promise<boolean> {
     console.log(`render succeeded job=${job.id} video=${candidate.video.id} storageKey=${storageKey}`);
   } catch (error) {
     const errorCode = error instanceof Error ? error.message.slice(0, 200) : "render_failed";
-    await db.update(generationJobs).set({ status: "failed", step: "failed", errorCode, leaseUntil: null }).where(eq(generationJobs.id, job.id));
-    console.error(`render failed job=${job.id}: ${errorCode}`);
+    const retry = job.attempts < MAX_RENDER_ATTEMPTS;
+    await db.update(generationJobs).set({ status: retry ? "queued" : "failed", step: retry ? "retry_pending" : "failed", errorCode, leaseUntil: null }).where(eq(generationJobs.id, job.id));
+    console.error(`render ${retry ? "retry scheduled" : "failed"} job=${job.id} attempt=${job.attempts}/${MAX_RENDER_ATTEMPTS}: ${errorCode}`);
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }

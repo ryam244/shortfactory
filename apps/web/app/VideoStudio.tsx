@@ -10,6 +10,7 @@ type Video = { id: string; workspaceId: string; brandId: string; topic: string; 
 type Plan = VideoPlan;
 type CostSummary = { estimatedJpy: string; costs: Array<{ provider: string; model: string; unit: string; estimatedJpy: string }> };
 type RenderJob = { id: string; status: string; step: string | null; errorCode?: string | null };
+type PreviewAsset = { id: string; key: string; kind: string };
 
 export default function VideoStudio() {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
@@ -26,9 +27,11 @@ export default function VideoStudio() {
   const [renderJob, setRenderJob] = useState<RenderJob | null>(null);
   const [audioUrls, setAudioUrls] = useState<Record<string, string>>({});
   const [audioDurations, setAudioDurations] = useState<Record<string, number>>({});
+  const [previewAssets, setPreviewAssets] = useState<Record<string, string>>({});
   const [previewingScene, setPreviewingScene] = useState<string | null>(null);
 
   useEffect(() => { void loadOptions(); }, []);
+  useEffect(() => { if (brandId) void loadPreviewAssets(brandId); else setPreviewAssets({}); }, [brandId]);
 
   async function loadOptions() {
     const [workspaceResponse, brandResponse] = await Promise.all([fetch("/api/workspaces"), fetch("/api/brands")]);
@@ -37,6 +40,13 @@ export default function VideoStudio() {
     const brandData = await brandResponse.json() as { brands: Brand[] };
     setWorkspaces(workspaceData.workspaces); setBrands(brandData.brands);
     if (workspaceData.workspaces[0]) setWorkspaceId(workspaceData.workspaces[0].id);
+  }
+
+  async function loadPreviewAssets(selectedBrandId: string) {
+    const response = await fetch(`/api/assets?brandId=${encodeURIComponent(selectedBrandId)}`);
+    if (!response.ok) { setPreviewAssets({}); return; }
+    const body = await response.json() as { assets: PreviewAsset[] };
+    setPreviewAssets(Object.fromEntries(body.assets.map((asset) => [asset.key, `/api/assets/${asset.id}/content`])));
   }
 
   async function createAndGenerate() {
@@ -139,7 +149,7 @@ export default function VideoStudio() {
     <button onClick={createAndGenerate} disabled={busy}>{busy ? "処理中…" : "動画を作成して台本生成"}</button>
     {video && <p>動画ID: {video.id} / version: {video.version}</p>}
     {costSummary && <p>見積原価：¥{costSummary.estimatedJpy}（fixtureは実費0円）</p>}
-    {plan && selectedBrand && <><h3>動画プレビュー</h3><PreviewPlayer plan={plan} brand={selectedBrand.kit} sceneAudio={audioUrls} sceneAudioDurations={audioDurations} /></>}
+    {plan && selectedBrand && <><h3>動画プレビュー</h3><PreviewPlayer plan={plan} brand={selectedBrand.kit} assets={previewAssets} sceneAudio={audioUrls} sceneAudioDurations={audioDurations} /></>}
     {plan && <div><h3>台本編集</h3><label>タイトル<input value={plan.title} onChange={(event) => setPlan({ ...plan, title: event.target.value })} /></label>
       {plan.scenes.map((scene, index) => <fieldset key={scene.id}><legend>{scene.id} ({scene.role})</legend><label>ナレーション<textarea value={scene.narration} onChange={(event) => updateScene(index, "narration", event.target.value)} /></label><button type="button" onClick={() => void regenerateScene(scene)} disabled={busy}>このシーンを再生成</button><button type="button" onClick={() => void previewVoice(scene)} disabled={previewingScene === scene.id || busy}>{previewingScene === scene.id ? "音声生成中…" : "音声を試聴"}</button>{audioUrls[scene.id] && <audio controls src={audioUrls[scene.id]} /> }<label>字幕<input value={scene.caption} onChange={(event) => updateScene(index, "caption", event.target.value)} /></label></fieldset>)}
       <label>CTA<input value={plan.cta} onChange={(event) => setPlan({ ...plan, cta: event.target.value })} /></label><button onClick={savePlan} disabled={busy}>台本を保存</button><button onClick={() => void enqueueRender()} disabled={busy}>MP4生成ジョブを作成</button>{renderJob && <p>Render job: {renderJob.id} / {renderJob.status}{renderJob.status === "failed" && <> / <button type="button" onClick={() => void retryRenderJob()} disabled={busy}>再実行</button></>}{renderJob.status === "succeeded" && <> / <a href={`/api/videos/${video?.id}/output`}>MP4をダウンロード</a></>}</p>}

@@ -4,6 +4,12 @@ export const COMPOSITION_ID = "yuru-anime-v1";
 export const VIDEO_WIDTH = 1080;
 export const VIDEO_HEIGHT = 1920;
 
+/** トーンと登録済み素材から、安全に選べる描画モードを決める。 */
+export function fullSceneModeForTone(plan: VideoPlan, assets: Record<string, string>): boolean {
+  if (plan.toneProfile === "ip-character") return false;
+  return Boolean(assets.full_scene || plan.scenes.some((scene) => assets[`full_scene/${scene.id}`]));
+}
+
 /**
  * テンプレートに渡す値。URLはワーカー（またはPlayerを置く画面）が
  * StorageProviderで解決して渡す。LLMの出力にURLは含めない。

@@ -1,6 +1,6 @@
 import { AbsoluteFill, Audio, Sequence } from "remotion";
 import { fontFamilyFor } from "./fonts";
-import { SAFE_ZONE, type YuruAnimeProps } from "./props";
+import { fullSceneModeForTone, SAFE_ZONE, type YuruAnimeProps } from "./props";
 import { SceneView } from "./components/SceneView";
 
 export const YuruAnimeV1: React.FC<YuruAnimeProps> = ({
@@ -18,6 +18,8 @@ export const YuruAnimeV1: React.FC<YuruAnimeProps> = ({
     acc.push(i === 0 ? 0 : acc[i - 1]! + sceneFrames[i - 1]!);
     return acc;
   }, []);
+  const toneSelectedFullScene = fullSceneModeForTone(plan, assets);
+  const effectiveFullSceneMode = fullSceneMode || toneSelectedFullScene;
 
   return (
     <AbsoluteFill style={{ backgroundColor: brand.colors.background, fontFamily: fontFamilyFor(brand.font) }}>
@@ -25,7 +27,7 @@ export const YuruAnimeV1: React.FC<YuruAnimeProps> = ({
         const audio = sceneAudio[i];
         return (
           <Sequence key={scene.id} name={scene.id} from={starts[i]} durationInFrames={sceneFrames[i]}>
-            <SceneView scene={scene} brand={brand} assets={assets} fadeIn={i > 0} sceneDurationInFrames={sceneFrames[i]!} fullSceneMode={fullSceneMode} kineticTextMode={kineticTextMode} />
+            <SceneView scene={scene} brand={brand} assets={assets} fadeIn={i > 0} sceneDurationInFrames={sceneFrames[i]!} fullSceneMode={effectiveFullSceneMode} kineticTextMode={kineticTextMode} />
             {audio ? <Audio src={audio} /> : null}
           </Sequence>
         );

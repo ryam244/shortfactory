@@ -77,6 +77,13 @@ main button:not(.ghost-button):not(.primary-button) { min-height: 40px; padding:
 main fieldset { margin: 18px 0; padding: 16px; border: 1px solid var(--sf-line); border-radius: 14px; }
 main legend { padding: 0 6px; color: var(--sf-ink); font-weight: 800; }
 main fieldset p, main section > p { color: var(--sf-muted); font-size: 13px; line-height: 1.6; }
+.settings-disclosure { margin: 14px 0; padding: 0 14px; border: 1px solid var(--sf-line); border-radius: 14px; background: #fbfcfe; }
+.settings-disclosure summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 0; cursor: pointer; color: var(--sf-ink); font-weight: 800; list-style: none; }
+.settings-disclosure summary::-webkit-details-marker { display: none; }
+.settings-disclosure summary::before { content: "+"; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 7px; color: var(--sf-primary); background: #eceaff; font-size: 17px; }
+.settings-disclosure[open] summary::before { content: "−"; }
+.settings-disclosure summary span { margin-left: auto; color: var(--sf-muted); font-size: 11px; font-weight: 600; }
+.settings-disclosure > form { padding-bottom: 12px; }
 #studio > section > h2 { display: none; }
 #studio > section > fieldset { background: #fbfcfe; }
 #studio > section > button { min-width: 190px; margin: 4px 0 16px; }

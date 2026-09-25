@@ -90,11 +90,14 @@ export default function BrandSettings() {
   });
 
   return <section>
-    <h2>Workspace</h2>
-    <form onSubmit={createWorkspace}><input aria-label="Workspace名" value={workspaceName} onChange={(event) => setWorkspaceName(event.target.value)} placeholder="例：自社SNS" required /><button>作成</button></form>
-    <label>登録先Workspace<select value={workspaceId} onChange={(event) => { setWorkspaceId(event.target.value); setAssetBrandId(""); }}><option value="">選択してください</option>{workspaces.map((workspace) => <option key={workspace.id} value={workspace.id}>{workspace.name}</option>)}</select></label>
-    <h2>ブランド登録</h2>
-    <form onSubmit={createBrand}>
+    <details className="settings-disclosure">
+      <summary>Workspace設定 <span>制作環境を選択・追加</span></summary>
+      <form onSubmit={createWorkspace}><input aria-label="Workspace名" value={workspaceName} onChange={(event) => setWorkspaceName(event.target.value)} placeholder="例：自社SNS" required /><button>作成</button></form>
+      <label>登録先Workspace<select value={workspaceId} onChange={(event) => { setWorkspaceId(event.target.value); setAssetBrandId(""); }}><option value="">選択してください</option>{workspaces.map((workspace) => <option key={workspace.id} value={workspace.id}>{workspace.name}</option>)}</select></label>
+    </details>
+    <details className="settings-disclosure">
+      <summary>ブランド登録 <span>IPの見た目・文体・音声</span></summary>
+      <form onSubmit={createBrand}>
       <label>ブランド名<input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required /></label>
       <label>スタイル<input value={form.style} onChange={(event) => setForm({ ...form, style: event.target.value })} required /></label>
       <label>文体<input value={form.tone} onChange={(event) => setForm({ ...form, tone: event.target.value })} required /></label>
@@ -103,11 +106,16 @@ export default function BrandSettings() {
       <label>音声ID<input value={form.voiceId} onChange={(event) => setForm({ ...form, voiceId: event.target.value })} required /></label>
       <label>1本あたり画像生成上限<input type="number" min="0" max="3" value={form.maxGeneratedImages} onChange={(event) => setForm({ ...form, maxGeneratedImages: event.target.value })} /></label>
       <button type="submit">ブランドを保存</button>
-    </form>
+      </form>
+    </details>
     {message && <p role="status">{message}</p>}{error && <p role="alert">{error}</p>}
-    <h2>登録済みブランド</h2><ul>{brands.map((brand) => <li key={brand.id}>{brand.name}</li>)}</ul>
-    <h2>素材登録</h2>
-    <form onSubmit={uploadAsset}>
+    <details className="settings-disclosure" open>
+      <summary>登録済みブランド <span>{brands.length}件</span></summary>
+      <ul>{brands.map((brand) => <li key={brand.id}>{brand.name}</li>)}</ul>
+    </details>
+    <details className="settings-disclosure">
+      <summary>素材を登録 <span>画像・音声・動画</span></summary>
+      <form onSubmit={uploadAsset}>
       <label>ブランド<select value={assetBrandId} onChange={(event) => setAssetBrandId(event.target.value)}><option value="">選択してください</option>{brands.filter((brand) => brand.workspaceId === workspaceId).map((brand) => <option key={brand.id} value={brand.id}>{brand.name}</option>)}</select></label>
       <label>素材キー<input value={assetKey} onChange={(event) => setAssetKey(event.target.value)} placeholder="character_01" required pattern="[a-z0-9][a-z0-9_]*" /></label>
       <p>トーン用の完成シーン素材は `full_scene` または `full_scene/scene-01` の形式で登録すると、動画作成時に自動選択されます。</p>
@@ -116,7 +124,8 @@ export default function BrandSettings() {
       <label>利用権情報<input value={assetRightsNote} onChange={(event) => setAssetRightsNote(event.target.value)} placeholder="商用利用可、ライセンス名など" required /></label>
       <label>ファイル<input type="file" accept="image/*,audio/*,video/*" onChange={(event) => setAssetFile(event.target.files?.[0] ?? null)} required /></label>
       <button type="submit">素材を登録</button>
-    </form>
+      </form>
+    </details>
     {assets.length > 0 && <>
       <h3>登録済み素材</h3>
       <label>素材検索<input value={assetQuery} onChange={(event) => setAssetQuery(event.target.value)} placeholder="キー、出所、権利情報、MIMEタイプ" /></label>

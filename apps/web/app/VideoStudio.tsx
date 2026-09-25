@@ -11,6 +11,7 @@ type Plan = VideoPlan;
 type CostSummary = { estimatedJpy: string; costs: Array<{ provider: string; model: string; unit: string; estimatedJpy: string }> };
 type RenderJob = { id: string; type: string; status: string; step: string | null; errorCode?: string | null };
 type PreviewAsset = { id: string; key: string; kind: string };
+type CreativeBrief = { audience: string; pain: string; solution: string; proof: string; cta: string };
 
 export default function VideoStudio() {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
@@ -18,6 +19,7 @@ export default function VideoStudio() {
   const [workspaceId, setWorkspaceId] = useState("");
   const [brandId, setBrandId] = useState("");
   const [topic, setTopic] = useState("");
+  const [creativeBrief, setCreativeBrief] = useState<CreativeBrief>({ audience: "", pain: "", solution: "", proof: "", cta: "" });
   const [video, setVideo] = useState<Video | null>(null);
   const [plan, setPlan] = useState<Plan | null>(null);
   const [message, setMessage] = useState("");
@@ -95,11 +97,14 @@ export default function VideoStudio() {
     setBusy(true); setError(""); setMessage(""); setPlan(null);
     const selectedBrand = brands.find((brand) => brand.id === brandId && brand.workspaceId === workspaceId);
     if (!selectedBrand || !topic.trim()) { setError("Workspace、ブランド、テーマを入力してください。"); setBusy(false); return; }
+    const briefValues = Object.values(creativeBrief).map((value) => value.trim());
+    const hasCreativeBrief = briefValues.some(Boolean);
+    if (hasCreativeBrief && briefValues.some((value) => !value)) { setError("自動構成を使う場合は5項目すべて入力してください。"); setBusy(false); return; }
     const createResponse = await fetch("/api/videos", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ workspaceId, brandId, topic }) });
     if (!createResponse.ok) { setError("動画レコードを作成できません。"); setBusy(false); return; }
     const created = await createResponse.json() as { video: Video };
     setVideo(created.video);
-    const planResponse = await fetch(`/api/videos/${created.video.id}/generate-plan`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ requestedImages: 0 }) });
+    const planResponse = await fetch(`/api/videos/${created.video.id}/generate-plan`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ requestedImages: 0, ...(hasCreativeBrief ? { creativeBrief } : {}) }) });
     if (!planResponse.ok) {
       const body = await planResponse.json().catch(() => ({})) as { error?: string; maxGeneratedImages?: number };
       setError(body.error === "generation_budget_exceeded" ? `画像生成の上限（${body.maxGeneratedImages}枚）を超えています。` : "台本を生成できません。");
@@ -109,7 +114,7 @@ export default function VideoStudio() {
     setVideo(generated.video); setPlan(generated.plan);
     const costsResponse = await fetch(`/api/videos/${generated.video.id}/costs`);
     if (costsResponse.ok) setCostSummary(await costsResponse.json() as CostSummary);
-    setMessage("fixture Directorで台本を生成しました。編集して保存できます。"); setBusy(false);
+    setMessage(hasCreativeBrief ? "フック→悩み→解決→証拠→CTAの5段構成で台本を生成しました。" : "fixture Directorで台本を生成しました。編集して保存できます。"); setBusy(false);
   }
 
   function updateScene(index: number, field: "narration" | "caption", value: string) {
@@ -172,6 +177,9 @@ export default function VideoStudio() {
     <label>Workspace<select value={workspaceId} onChange={(event) => { setWorkspaceId(event.target.value); setBrandId(""); }}><option value="">選択してください</option>{workspaces.map((workspace) => <option key={workspace.id} value={workspace.id}>{workspace.name}</option>)}</select></label>
     <label>ブランド<select value={brandId} onChange={(event) => setBrandId(event.target.value)}><option value="">選択してください</option>{visibleBrands.map((brand) => <option key={brand.id} value={brand.id}>{brand.name}</option>)}</select></label>
     <label>テーマ<input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="例：春の手土産を選ぶコツ" /></label>
+    <fieldset><legend>訴求の自動構成（任意）</legend><p>5項目を埋めると、フック→悩み→解決→証拠→CTAの順で自動構成します。</p>
+      {([['audience', '対象者', '例：職場に手土産を持っていく人'], ['pain', '悩み', '例：何を選べばいいか迷う'], ['solution', '解決策', '例：日持ちと個包装で絞る'], ['proof', '証拠', '例：配りやすく、すぐ食べなくても困らない'], ['cta', 'CTA', '例：保存して次に使う']] as const).map(([key, label, placeholder]) => <label key={key}>{label}<input value={creativeBrief[key]} placeholder={placeholder} onChange={(event) => setCreativeBrief({ ...creativeBrief, [key]: event.target.value })} /></label>)}
+    </fieldset>
     <button onClick={createAndGenerate} disabled={busy}>{busy ? "処理中…" : "動画を作成して台本生成"}</button>
     {video && <p>動画ID: {video.id} / version: {video.version}</p>}
     {costSummary && <p>見積原価：¥{costSummary.estimatedJpy}（fixtureは実費0円）</p>}

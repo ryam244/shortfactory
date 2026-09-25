@@ -9,11 +9,14 @@ import {
   type VideoPlan,
   type VideoPlanInput,
 } from "@shortfactory/contracts";
+export { composeCreativePlan, type CreativeBriefInput, type CreativePlanContext } from "./creative-plan";
+import { composeCreativePlan, type CreativeBriefInput } from "./creative-plan";
 
 export interface DirectorInput {
   topic: string;
   brand: BrandKit;
   availableAssetKeys: ReadonlySet<string>;
+  creativeBrief?: CreativeBriefInput;
 }
 
 export interface TextProvider {
@@ -57,6 +60,7 @@ export class JsonTextProvider implements TextProvider {
 /** 外部APIなしでDirectorの入出力契約を検証するfixture。 */
 export class FixtureTextProvider implements TextProvider {
   async generatePlan(input: DirectorInput): Promise<VideoPlan> {
+    if (input.creativeBrief) return composeCreativePlan(input.creativeBrief, input);
     const rawPlan = structuredClone(giftPlanFixture);
     const topic = input.topic.trim() || rawPlan.title;
     rawPlan.brandId = input.brand.name;

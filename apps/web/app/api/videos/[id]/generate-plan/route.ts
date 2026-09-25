@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { assertGenerationBudget, brandKitSchema, GenerationBudgetExceededError, giftAssetKeysFixture } from "@shortfactory/contracts";
-import { FixtureTextProvider } from "@shortfactory/providers";
+import { FixtureTextProvider, type CreativeBriefInput } from "@shortfactory/providers";
 import { brands, createGenerationRepository, createVideoRepository, videos, workspaces } from "@shortfactory/db";
 import { getDb } from "../../../../../lib/db";
 import { getRequestSession } from "../../../../../lib/session";
@@ -24,9 +24,14 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
 
     const brand = brandKitSchema.parse(row.brand.kitJson);
     let requestedImages = 0;
+    let creativeBrief: CreativeBriefInput | undefined;
     try {
-      const input = await request.json() as { requestedImages?: unknown };
+      const input = await request.json() as { requestedImages?: unknown; creativeBrief?: unknown };
       if (input.requestedImages !== undefined) requestedImages = Number(input.requestedImages);
+      if (input.creativeBrief !== undefined) {
+        if (!isCreativeBrief(input.creativeBrief)) return NextResponse.json({ error: "invalid_creative_brief" }, { status: 400 });
+        creativeBrief = input.creativeBrief;
+      }
     } catch {
       // An empty POST body is the normal fixture path.
     }
@@ -42,6 +47,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       topic: row.video.topic,
       brand,
       availableAssetKeys: new Set(giftAssetKeysFixture),
+      creativeBrief,
     });
     plan.brandId = row.brand.id;
     const savedVideo = await createVideoRepository(db).savePlan(id, plan);
@@ -53,4 +59,10 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     console.error("plan generation failed", error);
     return NextResponse.json({ error: "plan_generation_failed" }, { status: 400 });
   }
+}
+
+function isCreativeBrief(value: unknown): value is CreativeBriefInput {
+  if (!value || typeof value !== "object") return false;
+  const brief = value as Record<string, unknown>;
+  return ["audience", "pain", "solution", "proof", "cta"].every((key) => typeof brief[key] === "string" && brief[key].trim().length > 0);
 }

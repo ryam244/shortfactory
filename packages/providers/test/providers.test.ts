@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { giftPlanFixture } from "@shortfactory/contracts";
-import { createGiftFixtureProviders, JsonTextProvider } from "../src/index";
+import { composeCreativePlan, createGiftFixtureProviders, JsonTextProvider } from "../src/index";
 
 describe("fixture providers", () => {
   it("テーマから検証済みVideoPlanを返す", async () => {
@@ -50,5 +50,24 @@ describe("JsonTextProvider", () => {
       brand: fixture.brand,
       availableAssetKeys: fixture.assetKeys,
     })).rejects.toThrow("未登録の素材キー");
+  });
+});
+
+describe("composeCreativePlan", () => {
+  it("briefからフック→悩み→解決→証拠→CTAを固定順で作る", () => {
+    const fixture = createGiftFixtureProviders();
+    const plan = composeCreativePlan({
+      audience: "職場に手土産を持っていく人",
+      pain: "何を選べばいいか迷う",
+      solution: "日持ちと個包装で絞る",
+      proof: "配りやすく、すぐ食べなくても困らない",
+      cta: "保存して次に使う",
+    }, { brand: fixture.brand, availableAssetKeys: fixture.assetKeys });
+
+    expect(plan.scenes.map((scene) => scene.role)).toEqual(["hook", "body", "body", "body", "cta"]);
+    expect(plan.scenes[0]!.caption).toContain("迷う");
+    expect(plan.scenes[2]!.caption).toContain("解決");
+    expect(plan.scenes[3]!.caption).toContain("理由");
+    expect(plan.scenes[4]!.caption).toContain("保存");
   });
 });

@@ -84,6 +84,22 @@ main fieldset p, main section > p { color: var(--sf-muted); font-size: 13px; lin
 .settings-disclosure[open] summary::before { content: "−"; }
 .settings-disclosure summary span { margin-left: auto; color: var(--sf-muted); font-size: 11px; font-weight: 600; }
 .settings-disclosure > form { padding-bottom: 12px; }
+.creative-brief-disclosure { margin: 18px 0; }
+.creative-brief-disclosure > p, .creative-brief-disclosure > label { margin-left: 8px; margin-right: 8px; }
+.scene-disclosure { margin: 10px 0; border: 1px solid var(--sf-line); border-radius: 14px; background: #fff; overflow: hidden; }
+.scene-disclosure summary { display: flex; align-items: center; gap: 12px; padding: 14px; cursor: pointer; list-style: none; }
+.scene-disclosure summary::-webkit-details-marker { display: none; }
+.scene-disclosure summary::after { content: "+"; margin-left: auto; color: var(--sf-muted); font-size: 18px; }
+.scene-disclosure[open] summary::after { content: "−"; }
+.scene-disclosure summary strong, .scene-disclosure summary small { display: block; }
+.scene-disclosure summary strong { max-width: 80%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.scene-disclosure summary small { margin-top: 4px; color: var(--sf-muted); font-size: 11px; }
+.scene-index { display: grid; place-items: center; width: 34px; height: 34px; flex: 0 0 auto; border-radius: 10px; color: var(--sf-primary-dark); background: #eceaff; font-size: 12px; font-weight: 800; }
+.scene-index.scene-hook { color: #9c5b1d; background: #fff0d8; }
+.scene-index.scene-cta { color: #23766e; background: #e6f7f2; }
+.scene-editor { padding: 0 14px 14px; border-top: 1px solid var(--sf-line); }
+.scene-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.scene-actions button { min-height: 36px !important; padding: 0 12px !important; font-size: 12px; }
 #studio > section > h2 { display: none; }
 #studio > section > fieldset { background: #fbfcfe; }
 #studio > section > button { min-width: 190px; margin: 4px 0 16px; }

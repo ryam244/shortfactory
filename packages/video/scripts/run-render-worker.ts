@@ -58,10 +58,12 @@ async function runOnce(): Promise<boolean> {
       const bytes = await storage.get(asset.storageKey);
       resolvedAssets[asset.key] = `data:${asset.contentType};base64,${Buffer.from(bytes).toString("base64")}`;
     }));
+    const bgmUrl = plan.bgm?.enabled ? resolvedAssets[plan.bgm.assetKey] ?? null : null;
+    if (plan.bgm?.enabled && !bgmUrl) throw new Error(`bgm_asset_missing:${plan.bgm.assetKey}`);
     const props: YuruAnimeProps = {
       plan, brand, sceneFrames: timing.sceneFrames, assets: resolvedAssets,
       sceneAudio: voiceDurations.map(({ audio }) => `data:${audio.contentType};base64,${Buffer.from(audio.bytes).toString("base64")}`),
-      bgmUrl: null, showSafeZone: false,
+      bgmUrl, showSafeZone: false,
     };
     const serveUrl = await bundle({ entryPoint: path.resolve(here, "../src/remotion-entry.ts"), publicDir: path.resolve(here, "../public") });
     const composition = await selectComposition({ serveUrl, id: COMPOSITION_ID, inputProps: props, browserExecutable });

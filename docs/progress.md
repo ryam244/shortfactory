@@ -1,13 +1,13 @@
 # Short Factory 進行表
 
-最終更新：2026-09-25 01:05 JST
+最終更新：2026-09-25 10:35 JST
 基準文書：[master-plan.md](./master-plan.md)
 
 ## 現在地
 
-2026-09-25追記：共感を軸にした編集サンプルの制作を開始。オリジナルSVG10点と実VOICEVOX音声7場面による約28秒のMP4を生成し、解像度・コーデック・音声・fps・尺の技術検証に合格。画面に完成MP4の再生を追加。制作方針・参照資料・再現手順は[ショート動画の制作ベース](./short-video-creative-base.md)へ保存。実視聴者の評価と、任意テーマへの台本自動化は未完了。
+2026-09-25追記：共感を軸にした編集サンプルを、Midjourney背景とSuno WAVを使う実素材版へ更新。実VOICEVOX音声7場面＋BGMによる約28秒のMP4を生成し、解像度・コーデック・音声・fps・尺の技術検証に合格。画面に完成MP4の再生を追加。制作方針・参照資料・再現手順は[ショート動画の制作ベース](./short-video-creative-base.md)へ保存。実視聴者の評価と、任意テーマへの台本自動化は未完了。
 
-**Phase 5の30本評価配線とPhase 0bのCompose起動定義まで進行。30本fixtureの生成・技術検証は完了したが、実素材・実音声による品質判定は未着手。**
+**Phase 5の30本評価配線とPhase 0bのCompose起動定義まで進行。実素材サンプル1本の生成・技術検証まで完了したが、5本の人手評価と30本の実素材評価は未着手。**
 
 JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC上で1080×1920のMP4を1コマンド生成できる。現在のテストデータは動作確認用であり、実ブランドの品質合格とは扱わない。
 
@@ -15,13 +15,13 @@ JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC
 
 | フェーズ | 状態 | 完了した範囲 | 残りの完了条件／次の作業 |
 | --- | --- | --- | --- |
-| 前提：素材準備 | 未完了 | asset key、ローカル素材マニフェストの契約 | 実ブランドのキャラ・表情・背景・小物・BGMと利用権情報を揃える |
-| 0a：品質検証 | 配線完了・品質判定待ち | `VideoPlan`、fixture、JSON台本、VOICEVOX、Storage、Remotion、技術検証 | 実台本＋実素材で5本生成し、人手評価4/5以上。TTS候補と合成方式を決定 |
+| 前提：素材準備 | 一部完了・権利確認待ち | Midjourney背景1点、Suno WAV 1曲、オリジナルSVG10点、VOICEVOX音声7場面を登録。出所・権利メモを保存 | Midjourney/Sunoの公開・商用利用条件を確認し、実ブランド素材一式を確定 |
+| 0a：品質検証 | 実素材1本完了・5本評価待ち | `VideoPlan`、実素材、実音声、BGM、Storage、Remotion、1080×1920 MP4の技術検証 | 冒頭違いを含む実台本＋実素材5本を生成し、人手評価4/5以上。TTS候補と合成方式を決定 |
 | 0b：環境確定 | 一部着手・Docker I/O復旧待ち | VOICEVOX単体Docker運用、Postgres、Web・WorkerのCompose定義、Chromium・FFmpeg入りDockerfile、Postgres起動とマイグレーション | Dockerイメージのビルド・`docker compose up`実起動、Text API・単価・規約の記録 |
 | 1：基盤 | 一部完了 | Next.jsのログイン画面、DBユーザー認証、署名セッション、未ログイン拒否、Workspace作成、所有者確認付きブランド一覧・登録API、ブランド設定画面、冪等な初期ユーザー／Workspace seed、PostgresバックアップCLI（既定7世代保持）、GitHub Actionsのテスト・型チェック・Webビルド、DB接続ヘルスチェックAPI | CIのGitHub上実行確認、バックアップのPC外同期・復元、初回ユーザー作成の実機確認 |
 | 2：台本 | 一部完了 | `VideoPlan`、JSON台本Provider、読み辞書・検証、動画作成API、fixture Directorによる台本生成・保存API、version照合付き台本編集API、最小台本編集画面 | 外部Director接続、UIの実機操作確認、ジョブ化 |
 | 3：素材・音声 | 一部完了 | `StorageProvider`、`AssetProvider`、VOICEVOX、尺計算、素材メタデータ登録・一覧API、ローカルStorageへのファイルアップロード・所有者付き配信API、アップロードMIMEタイプ保存・配信、素材検索・種類フィルター・権利情報表示UI、画像生成Provider前のブランド別上限ガード、生成ジョブ・見積原価の記録と動画単位集計、VOICEVOX試聴API・台本画面接続、シーン単位の部分再生成API・UI、TTS音声のStorage永続保存と素材登録 | Provider別単価・実費確定 |
-| 4：動画 | 一部完了 | Remotionテンプレート、MP4、ffprobe技術検証、安全域、Web Studio内Remotion Playerプレビュー、登録素材のPreview反映、所有者確認付きrenderジョブ登録・状態API、ローカルrender Workerの1件処理・常駐監視・MP4 Storage保存・`video_outputs`登録、MP4ダウンロードAPI、最大3回のrender自動再試行、Preview/Worker共通のfixture音声尺、保存済みVOICEVOX音声のPreview/Worker利用、DB出力の自動整合検証コマンド | 実素材・実音声でのプレビューとMP4の一致確認 |
+| 4：動画 | 実素材サンプルまで完了 | Remotionテンプレート、MP4、ffprobe技術検証、安全域、Web Studio内Remotion Playerプレビュー、登録素材のPreview反映、所有者確認付きrenderジョブ登録・状態API、ローカルrender Workerの1件処理・常駐監視・MP4 Storage保存・`video_outputs`登録、MP4ダウンロードAPI、最大3回のrender自動再試行、Preview/Worker共通のfixture音声尺、保存済みVOICEVOX音声とSuno BGMのPreview/Worker利用、DB出力の自動整合検証コマンド | 実素材5本のプレビューとMP4の一致確認 |
 | 5：運用 | 一部完了・実素材評価待ち | render失敗時の最大3回再試行、失敗ジョブの状態記録、所有者確認付き手動再実行API・UI、MP4保持期限のdry-run/apply CLI、30本fixture生成、manifest、技術検証30/30、集計CLI | 30本の実素材評価、結果集計、合格判定 |
 | 6：クラウド | 保留 | なし | 30本評価合格後に必要性を判断 |
 

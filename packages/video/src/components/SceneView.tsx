@@ -19,6 +19,7 @@ interface SceneViewProps {
   /** 先頭シーン以外はフェードインする。 */
   fadeIn: boolean;
   sceneDurationInFrames: number;
+  fullSceneMode?: boolean;
 }
 
 const FADE_FRAMES = 6;
@@ -35,7 +36,7 @@ const CHARACTER_AREA = {
 } as const;
 const BOUNCE: Partial<SpringConfig> = { damping: 8, stiffness: 160, mass: 0.8 };
 
-export const SceneView: React.FC<SceneViewProps> = ({ scene, brand, assets, fadeIn, sceneDurationInFrames }) => {
+export const SceneView: React.FC<SceneViewProps> = ({ scene, brand, assets, fadeIn, sceneDurationInFrames, fullSceneMode = false }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const { colors } = brand;
@@ -44,7 +45,7 @@ export const SceneView: React.FC<SceneViewProps> = ({ scene, brand, assets, fade
   const progress = interpolate(frame, [0, Math.max(1, sceneDurationInFrames - 1)], [0, 1], { extrapolateRight: "clamp" });
   const opacity = fadeIn ? interpolate(frame, [0, FADE_FRAMES], [0, 1], { extrapolateRight: "clamp" }) : 1;
 
-  const backgroundUrl = assets[backgroundKey];
+  const backgroundUrl = fullSceneMode ? assets.full_scene : assets[backgroundKey];
   const characterUrl = (expressionKey && assets[`${characterKey}/${expressionKey}`]) || assets[characterKey];
 
   return (
@@ -61,7 +62,7 @@ export const SceneView: React.FC<SceneViewProps> = ({ scene, brand, assets, fade
         <AbsoluteFill style={{ background: "rgba(28, 35, 32, 0.08)" }} />
       </AbsoluteFill>
 
-      <div
+      {!fullSceneMode ? <div
         style={{
           position: "absolute",
           ...CHARACTER_AREA,
@@ -83,9 +84,9 @@ export const SceneView: React.FC<SceneViewProps> = ({ scene, brand, assets, fade
             ink={colors.text}
           />
         )}
-      </div>
+      </div> : null}
 
-      {objectKeys.length > 0 ? (
+      {!fullSceneMode && objectKeys.length > 0 ? (
         <div
           style={{
             position: "absolute",

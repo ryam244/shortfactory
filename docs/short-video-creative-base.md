@@ -60,6 +60,17 @@ SHORTFACTORY_BGM_FILE="/path/to/Cozy Gift Shop.wav" \
 pnpm --filter @shortfactory/video exec tsx scripts/create-editorial-sample.ts
 ```
 
+完成シーン画像を使う設定駆動テストは、設定JSONと画像・音声素材を指定して再現できる。
+
+```sh
+SHORTFACTORY_BATCH_SCENE=/path/to/full-scene.png \
+SHORTFACTORY_BATCH_AUDIO_DIR=/path/to/audio \
+SHORTFACTORY_BATCH_BGM=/path/to/bgm.wav \
+pnpm --filter @shortfactory/video batch:settings
+```
+
+この入口は人物と背景の自然な一体感を優先し、Remotionで字幕・ナレーション・BGMを後合成する。複数シーン画像の自動生成と複数設定の一括展開は次の作業。
+
 `DATABASE_URL`が必須。`SHORTFACTORY_ADMIN_EMAIL`（既定local-admin@example.com）、`VOICEVOX_URL`、`SHORTFACTORY_STORAGE_ROOT`で環境を指定できる。実行ごとに別ブランド・動画を作成するため、以前の素材・動画は上書きしない。完成後、Webを再読み込みすると最新動画を復元し、完成MP4を直接再生する。
 
 ## 品質判定と残り

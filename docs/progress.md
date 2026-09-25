@@ -5,7 +5,7 @@
 
 ## 現在地
 
-2026-09-25追記：共感を軸にした編集サンプルを調整。人物を背景に合わせた統一ベクター版に加え、Midjourney背景を全場面へ使い、同じ画風の透過人物3ポーズを重ねる比較版も生成。人物サイズ、背景の視認性、小物位置、字幕サイズを視聴性基準に沿って調整し、最終比較版の再レンダリングと技術検証まで完了。実VOICEVOX音声7場面＋Suno WAVによる約28秒のMP4を生成し、解像度・コーデック・音声・fps・尺の技術検証に合格。画面に完成MP4の再生を追加。制作方針・参照資料・再現手順は[ショート動画の制作ベース](./short-video-creative-base.md)へ保存。実視聴者の評価と、任意テーマへの台本自動化は未完了。
+2026-09-25追記：共感を軸にした編集サンプルを調整。人物を背景に合わせた統一ベクター版に加え、Midjourney背景を全場面へ使い、同じ画風の透過人物3ポーズを重ねる比較版も生成。人物サイズ、背景の視認性、小物位置、字幕サイズを視聴性基準に沿って調整し、最終比較版の再レンダリングと技術検証まで完了。さらに完成シーン画像を使う設定駆動バッチ入口 `batch:settings` を追加し、字幕・実音声・BGM付きのテスト1本を生成した。実VOICEVOX音声7場面＋Suno WAVによる約28秒のMP4を生成し、解像度・コーデック・音声・fps・尺の技術検証に合格。画面に完成MP4の再生を追加。制作方針・参照資料・再現手順は[ショート動画の制作ベース](./short-video-creative-base.md)へ保存。実視聴者の評価と、任意テーマへの台本自動化は未完了。
 
 **Phase 5の30本評価配線とPhase 0bのCompose起動定義まで進行。実素材サンプル1本の生成・技術検証まで完了したが、5本の人手評価と30本の実素材評価は未着手。**
 
@@ -21,7 +21,7 @@ JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC
 | 1：基盤 | 一部完了 | Next.jsのログイン画面、DBユーザー認証、署名セッション、未ログイン拒否、Workspace作成、所有者確認付きブランド一覧・登録API、ブランド設定画面、冪等な初期ユーザー／Workspace seed、PostgresバックアップCLI（既定7世代保持）、GitHub Actionsのテスト・型チェック・Webビルド、DB接続ヘルスチェックAPI | CIのGitHub上実行確認、バックアップのPC外同期・復元、初回ユーザー作成の実機確認 |
 | 2：台本 | 一部完了 | `VideoPlan`、JSON台本Provider、読み辞書・検証、動画作成API、fixture Directorによる台本生成・保存API、version照合付き台本編集API、最小台本編集画面 | 外部Director接続、UIの実機操作確認、ジョブ化 |
 | 3：素材・音声 | 一部完了 | `StorageProvider`、`AssetProvider`、VOICEVOX、尺計算、素材メタデータ登録・一覧API、ローカルStorageへのファイルアップロード・所有者付き配信API、アップロードMIMEタイプ保存・配信、素材検索・種類フィルター・権利情報表示UI、画像生成Provider前のブランド別上限ガード、生成ジョブ・見積原価の記録と動画単位集計、VOICEVOX試聴API・台本画面接続、シーン単位の部分再生成API・UI、TTS音声のStorage永続保存と素材登録 | Provider別単価・実費確定 |
-| 4：動画 | 実素材サンプルまで完了 | Remotionテンプレート、MP4、ffprobe技術検証、安全域、Web Studio内Remotion Playerプレビュー、登録素材のPreview反映、所有者確認付きrenderジョブ登録・状態API、ローカルrender Workerの1件処理・常駐監視・MP4 Storage保存・`video_outputs`登録、MP4ダウンロードAPI、最大3回のrender自動再試行、Preview/Worker共通のfixture音声尺、保存済みVOICEVOX音声とSuno BGMのPreview/Worker利用、DB出力の自動整合検証コマンド | 実素材5本のプレビューとMP4の一致確認 |
+| 4：動画 | 実素材・設定駆動テストまで完了 | Remotionテンプレート、MP4、ffprobe技術検証、安全域、Web Studio内Remotion Playerプレビュー、登録素材のPreview反映、所有者確認付きrenderジョブ登録・状態API、ローカルrender Workerの1件処理・常駐監視・MP4 Storage保存・`video_outputs`登録、MP4ダウンロードAPI、最大3回のrender自動再試行、Preview/Worker共通のfixture音声尺、保存済みVOICEVOX音声とSuno BGMのPreview/Worker利用、完成シーン画像＋字幕の設定駆動バッチ、DB出力の自動整合検証コマンド | 設定から複数シーン画像・複数動画を一括生成 |
 | 5：運用 | 一部完了・実素材評価待ち | render失敗時の最大3回再試行、失敗ジョブの状態記録、所有者確認付き手動再実行API・UI、MP4保持期限のdry-run/apply CLI、30本fixture生成、manifest、技術検証30/30、集計CLI | 30本の実素材評価、結果集計、合格判定 |
 | 6：クラウド | 保留 | なし | 30本評価合格後に必要性を判断 |
 

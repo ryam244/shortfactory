@@ -21,6 +21,8 @@ export interface YuruAnimeProps {
   /** シーンごとのナレーション音声URL。TTS前は null。 */
   sceneAudio: (string | null)[];
   bgmUrl: string | null;
+  /** 完成シーン画像を背景として使い、人物・小物レイヤーを省略するバッチモード。 */
+  fullSceneMode?: boolean;
   /** SNSのUIに隠れる範囲を重ねて表示する（確認用）。 */
   showSafeZone: boolean;
   // Remotionの入力propsはインデックスシグネチャを要求する

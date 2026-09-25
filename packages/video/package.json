@@ -23,6 +23,7 @@
     "evaluation:summary": "tsx scripts/summarize-evaluation.ts",
     "evaluation:review": "tsx scripts/review-evaluation.ts",
     "render:sample": "tsx scripts/render-sample.ts",
+    "batch:settings": "tsx scripts/run-batch-settings.ts",
     "worker:render": "tsx scripts/run-render-worker.ts",
     "worker:render:watch": "tsx scripts/run-render-worker.ts --watch",
     "verify:render": "tsx scripts/verify-render-output.ts",

@@ -44,8 +44,18 @@ try {
     await storage.put(storageKey, new Uint8Array(await readFile(process.env.SHORTFACTORY_BGM_FILE)), 'audio/wav');
     await rows.create({ workspaceId: workspace.id, brandId: brand.id, key: bgmKey, kind: 'bgm', storageKey, contentType: 'audio/wav', source: 'Suno生成「Cozy Gift Shop」 / 6a01cb54-4757-4a73-a22c-80942c2d5b47', rightsNote: 'ユーザー所有のSuno Proアカウントで生成。公開前にSunoのプラン・利用規約・商用利用条件を確認する' });
   }
+  const variant = Number(process.env.SHORTFACTORY_EDITORIAL_VARIANT ?? '1');
+  const hooks = [
+    ['高いほうなら、安心？', '高いほうなら、喜んでもらえるかな。'],
+    ['相手が困らない手土産は？', '喜ばせたいけれど、相手に気をつかわせたくない。'],
+    ['好きなもの、覚えてる？', '前に好きだと言っていたものを、覚えているかな。'],
+    ['迷ったら、値段を見ない', '高いものを選べば安心、とは限らない。'],
+    ['渡したあとまで、考える', '渡した瞬間だけでなく、そのあとも気持ちよく過ごしてほしい。'],
+  ] as const;
+  const [hookCaption, hookNarration] = hooks[Math.max(0, Math.min(hooks.length - 1, variant - 1))]!;
+  const editorialTitle = process.env.SHORTFACTORY_EDITORIAL_TITLE ?? hookCaption;
   const beats = [
-    ['高いほうなら、安心？', '高いほうなら、喜んでもらえるかな。', 'think', 'shop_shelf', ['gift_box'], 'slow_zoom'],
+    [hookCaption, hookNarration, 'think', 'shop_shelf', ['gift_box'], 'slow_zoom'],
     ['選ぶほど、わからない', 'でも、選ぶほど、わからなくなる。', 'think', 'shop_shelf', ['gift_box', 'cookie'], 'pan_right'],
     ['あ、前に言ってた', 'あ、前に、クッキーが好きって言ってた。', 'surprise', 'desk', ['cookie'], 'bounce'],
     ['好き、を覚えていた', '好きなものを、覚えていた。それだけでいい。', 'smile', 'room_warm', ['cookie'], 'slow_zoom'],
@@ -54,7 +64,7 @@ try {
     ['迷った日に、思い出して', '次に迷った日、この選び方を思い出してね。', 'smile', 'room_warm', ['card'], 'none'],
   ] as const;
   const selectedBackgroundKey = process.env.SHORTFACTORY_MJ_BACKGROUND ? 'shop_shelf' : null;
-  const input: VideoPlanInput = { schemaVersion: 1, template: 'yuru_anime_v1', brandId: brand.id, title: '高いほうなら、安心？', fps: 30, ...(process.env.SHORTFACTORY_BGM_FILE ? { bgm: { enabled: true, assetKey: bgmKey, volume: 0.07 } } : {}), cta: '迷った日に、思い出して', scenes: beats.map(([caption,narration,expressionKey,backgroundKey,objectKeys,motion], i) => ({ id: `scene-${String(i+1).padStart(2,'0')}`, role: i === 0 ? 'hook' : i === 6 ? 'cta' : 'body', caption, narration, visual: { characterKey: 'gift_girl', expressionKey, backgroundKey: selectedBackgroundKey ?? backgroundKey, objectKeys: [...objectKeys] }, motion, minDurationMs: 2800, maxDurationMs: 6000 })) };
+  const input: VideoPlanInput = { schemaVersion: 1, template: 'yuru_anime_v1', brandId: brand.id, title: editorialTitle, fps: 30, ...(process.env.SHORTFACTORY_BGM_FILE ? { bgm: { enabled: true, assetKey: bgmKey, volume: 0.07 } } : {}), cta: '迷った日に、思い出して', scenes: beats.map(([caption,narration,expressionKey,backgroundKey,objectKeys,motion], i) => ({ id: `scene-${String(i+1).padStart(2,'0')}`, role: i === 0 ? 'hook' : i === 6 ? 'cta' : 'body', caption, narration, visual: { characterKey: 'gift_girl', expressionKey, backgroundKey: selectedBackgroundKey ?? backgroundKey, objectKeys: [...objectKeys] }, motion, minDurationMs: 2800, maxDurationMs: 6000 })) };
   const valid = validateVideoPlan(input, { brand: kit, availableAssetKeys: new Set([...Object.keys(editorialAssets), ...(process.env.SHORTFACTORY_BGM_FILE ? [bgmKey] : [])]) });
   if (!valid.ok) throw new Error(JSON.stringify(valid.issues));
   const voice = new VoicevoxProvider();

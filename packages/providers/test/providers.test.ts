@@ -62,6 +62,7 @@ describe("composeCreativePlan", () => {
       solution: "日持ちと個包装で絞る",
       proof: "配りやすく、すぐ食べなくても困らない",
       cta: "保存して次に使う",
+      toneProfile: "ip-character",
     }, { brand: fixture.brand, availableAssetKeys: fixture.assetKeys });
 
     expect(plan.scenes.map((scene) => scene.role)).toEqual(["hook", "body", "body", "body", "cta"]);
@@ -69,6 +70,7 @@ describe("composeCreativePlan", () => {
     expect(plan.scenes[2]!.caption).toContain("解決");
     expect(plan.scenes[3]!.caption).toContain("理由");
     expect(plan.scenes[4]!.caption).toContain("保存");
+    expect(plan.toneProfile).toBe("ip-character");
   });
 
   it("同じブリーフから3種類のフックを比較生成できる", () => {

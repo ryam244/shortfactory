@@ -1,6 +1,7 @@
 import {
   validateVideoPlan,
   type BrandKit,
+  type CreativeToneProfile,
   type VideoPlan,
   type VideoPlanInput,
 } from "@shortfactory/contracts";
@@ -12,6 +13,7 @@ export interface CreativeBriefInput {
   proof: string;
   cta: string;
   hookStyle?: HookStyle;
+  toneProfile?: CreativeToneProfile;
   /** ブランド固有の素材を指定したい場合だけ上書きする。 */
   assets?: {
     characterKey?: string;
@@ -59,6 +61,7 @@ export function composeCreativePlan(brief: CreativeBriefInput, context: Creative
     title: shorten(`${text.solution}｜${text.audience}`, 60),
     fps: 30,
     cta: shorten(text.cta, 40),
+    toneProfile: brief.toneProfile,
     scenes,
   };
   const result = validateVideoPlan(raw, { brand: context.brand, availableAssetKeys: context.availableAssetKeys });

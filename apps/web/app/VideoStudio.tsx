@@ -11,7 +11,7 @@ type Plan = VideoPlan;
 type CostSummary = { estimatedJpy: string; costs: Array<{ provider: string; model: string; unit: string; estimatedJpy: string }> };
 type RenderJob = { id: string; type: string; status: string; step: string | null; errorCode?: string | null };
 type PreviewAsset = { id: string; key: string; kind: string };
-type CreativeBrief = { audience: string; pain: string; solution: string; proof: string; cta: string };
+type CreativeBrief = { audience: string; pain: string; solution: string; proof: string; cta: string; toneProfile: "ip-character" | "realistic-person" | "pale-illustration-person" };
 
 export default function VideoStudio() {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
@@ -19,7 +19,7 @@ export default function VideoStudio() {
   const [workspaceId, setWorkspaceId] = useState("");
   const [brandId, setBrandId] = useState("");
   const [topic, setTopic] = useState("");
-  const [creativeBrief, setCreativeBrief] = useState<CreativeBrief>({ audience: "", pain: "", solution: "", proof: "", cta: "" });
+  const [creativeBrief, setCreativeBrief] = useState<CreativeBrief>({ audience: "", pain: "", solution: "", proof: "", cta: "", toneProfile: "ip-character" });
   const [video, setVideo] = useState<Video | null>(null);
   const [plan, setPlan] = useState<Plan | null>(null);
   const [message, setMessage] = useState("");
@@ -97,7 +97,7 @@ export default function VideoStudio() {
     setBusy(true); setError(""); setMessage(""); setPlan(null);
     const selectedBrand = brands.find((brand) => brand.id === brandId && brand.workspaceId === workspaceId);
     if (!selectedBrand || !topic.trim()) { setError("Workspace、ブランド、テーマを入力してください。"); setBusy(false); return; }
-    const briefValues = Object.values(creativeBrief).map((value) => value.trim());
+    const briefValues = [creativeBrief.audience, creativeBrief.pain, creativeBrief.solution, creativeBrief.proof, creativeBrief.cta].map((value) => value.trim());
     const hasCreativeBrief = briefValues.some(Boolean);
     if (hasCreativeBrief && briefValues.some((value) => !value)) { setError("自動構成を使う場合は5項目すべて入力してください。"); setBusy(false); return; }
     const createResponse = await fetch("/api/videos", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ workspaceId, brandId, topic }) });
@@ -178,6 +178,7 @@ export default function VideoStudio() {
     <label>ブランド<select value={brandId} onChange={(event) => setBrandId(event.target.value)}><option value="">選択してください</option>{visibleBrands.map((brand) => <option key={brand.id} value={brand.id}>{brand.name}</option>)}</select></label>
     <label>テーマ<input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="例：春の手土産を選ぶコツ" /></label>
     <fieldset><legend>訴求の自動構成（任意）</legend><p>5項目を埋めると、フック→悩み→解決→証拠→CTAの順で自動構成します。</p>
+      <label>映像トーン<select value={creativeBrief.toneProfile} onChange={(event) => setCreativeBrief({ ...creativeBrief, toneProfile: event.target.value as CreativeBrief["toneProfile"] })}><option value="ip-character">固定IPキャラクター</option><option value="realistic-person">実物寄りのリアル人物</option><option value="pale-illustration-person">淡い色調のイラスト人物</option></select></label>
       {([['audience', '対象者', '例：職場に手土産を持っていく人'], ['pain', '悩み', '例：何を選べばいいか迷う'], ['solution', '解決策', '例：日持ちと個包装で絞る'], ['proof', '証拠', '例：配りやすく、すぐ食べなくても困らない'], ['cta', 'CTA', '例：保存して次に使う']] as const).map(([key, label, placeholder]) => <label key={key}>{label}<input value={creativeBrief[key]} placeholder={placeholder} onChange={(event) => setCreativeBrief({ ...creativeBrief, [key]: event.target.value })} /></label>)}
     </fieldset>
     <button onClick={createAndGenerate} disabled={busy}>{busy ? "処理中…" : "動画を作成して台本生成"}</button>

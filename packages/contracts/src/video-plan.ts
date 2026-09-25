@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { creativeToneProfileSchema } from "./creative-tone";
 
 /** テンプレートが実装しているモーションの許可リスト。 */
 export const MOTIONS = ["none", "slow_zoom", "pan_left", "pan_right", "slide_up", "bounce"] as const;
@@ -68,6 +69,8 @@ export const videoPlanSchema = z
     bgm: bgmSchema.optional(),
     scenes: z.array(sceneSchema).min(PLAN_LIMITS.minScenes).max(PLAN_LIMITS.maxScenes),
     cta: z.string().trim().min(1).max(40),
+    /** この台本で採用した映像トーン。未指定は従来互換。 */
+    toneProfile: creativeToneProfileSchema.optional(),
   })
   .refine((p) => new Set(p.scenes.map((s) => s.id)).size === p.scenes.length, {
     message: "シーンidが重複している",

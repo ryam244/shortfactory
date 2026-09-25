@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import BrandSettings from "./BrandSettings";
+import DashboardOverview from "./DashboardOverview";
 import VideoStudio from "./VideoStudio";
 
 type Session = { authenticated: boolean; subject?: string };
@@ -56,12 +57,7 @@ export default function HomePage() {
       </aside>
       <main className="dashboard-main">
         <header className="topbar" id="overview"><div><p className="eyebrow">Creative dashboard</p><h1>おかえりなさい</h1><p>ひとつのIPを育てながら、次のショート動画をつくりましょう。</p></div><div className="topbar-actions"><a className="primary-button" href="#studio">＋ 動画をつくる</a></div></header>
-        <section className="metric-grid" aria-label="制作状況">
-          <article className="metric-card"><span className="metric-label">制作フロー</span><strong>5段構成</strong><span className="metric-note">フック → CTA</span></article>
-          <article className="metric-card"><span className="metric-label">IPトーン</span><strong>3種類</strong><span className="metric-note">選択して保存済み</span></article>
-          <article className="metric-card"><span className="metric-label">出力形式</span><strong>9:16</strong><span className="metric-note">1080 × 1920</span></article>
-          <article className="metric-card"><span className="metric-label">生成コスト</span><strong>¥0</strong><span className="metric-note">現在はローカル検証</span></article>
-        </section>
+        <DashboardOverview />
         <div className="content-grid">
           <section className="panel section-anchor" id="studio"><div className="panel-heading"><div><h2>動画スタジオ</h2><p>訴求ブリーフから台本・音声・MP4まで進めます。</p></div><span aria-hidden="true">●</span></div><VideoStudio /></section>
           <aside>

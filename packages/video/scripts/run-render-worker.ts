@@ -5,7 +5,7 @@ import { brandKitSchema, giftAssetKeysFixture, resolveSceneTiming, ttsTextForSce
 import { createDb, assets, brands, generationJobs, videoOutputs, videos } from "@shortfactory/db";
 import { FixtureVoiceProvider, parseWavDurationMs } from "@shortfactory/providers";
 import { LocalStorageProvider } from "@shortfactory/storage";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, statfs } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -15,6 +15,7 @@ import { COMPOSITION_ID, VIDEO_HEIGHT, VIDEO_WIDTH, type YuruAnimeProps } from "
 const here = path.dirname(fileURLToPath(import.meta.url));
 const browserExecutable = process.env.REMOTION_BROWSER_EXECUTABLE ?? null;
 const MAX_RENDER_ATTEMPTS = 3;
+const MIN_FREE_BYTES = Number(process.env.SHORTFACTORY_MIN_FREE_BYTES ?? 512 * 1024 * 1024);
 const cwd = process.cwd();
 const storageBaseDir = existsSync(path.resolve(cwd, "pnpm-workspace.yaml")) ? cwd : existsSync(path.resolve(cwd, "../..", "pnpm-workspace.yaml")) ? path.resolve(cwd, "../..") : cwd;
 const storage = new LocalStorageProvider(path.resolve(storageBaseDir, process.env.SHORTFACTORY_STORAGE_ROOT ?? "storage"));
@@ -28,6 +29,12 @@ async function runOnce(): Promise<boolean> {
     .where(and(eq(generationJobs.status, "queued"), eq(generationJobs.type, "render")))
     .orderBy(asc(generationJobs.createdAt)).limit(1);
   if (!candidate) return false;
+  const filesystem = await statfs(storageBaseDir);
+  const freeBytes = filesystem.bavail * filesystem.bsize;
+  if (freeBytes < MIN_FREE_BYTES) {
+    console.warn(`render paused: free disk space is ${Math.round(freeBytes / 1024 / 1024)}MB; need at least ${Math.round(MIN_FREE_BYTES / 1024 / 1024)}MB`);
+    return false;
+  }
   const [job] = await db.update(generationJobs).set({ status: "running", step: "rendering", attempts: candidate.job.attempts + 1 })
     .where(and(eq(generationJobs.id, candidate.job.id), eq(generationJobs.status, "queued"))).returning();
   if (!job) return true;

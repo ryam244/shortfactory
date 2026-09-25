@@ -85,6 +85,7 @@ JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC
 - ダッシュボード概要にマスタープランの現在地（Phase 0a、実素材1本完了、5本評価待ち）と次の作業への導線を追加
 - 実素材サンプルを別ブランドとして生成・render。Midjourney背景、生成人物、VOICEVOX実音声7シーン、Suno BGMを使用し、1080×1920・H.264・AAC・30fps、期待尺28,251msに対して実測28,331ms（差80ms）で技術検証に合格。人手による品質判定は未実施
 - 冒頭フック5パターンの実素材評価バッチ入口 `evaluation:editorial:5` を追加。実行時に5本中2本のMP4生成まで成功したが、ホストの空き容量が147MBまで減り、残り3本は `ENOSPC` で停止。Dockerの再利用可能領域は約6GBあるが、既存データ削除の承認待ち。品質判定は未実施
+- Render Workerに空き容量の事前チェック（既定512MB）を追加。容量不足時はジョブを`running`へ進めず待機するため、今回のような書き出し途中の`ENOSPC`を防ぐ
 - `SHORTFACTORY_VIDEO_ID=<id> pnpm --filter @shortfactory/video verify:render`で最新MP4をffprobe検証し、台本・実音声から計算した尺との差を150ms以内で判定する
 - ローカルE2Eでrender成功後に`verify:render`を実行し、1080×1920・H.264・AAC・30fps・尺差53ms（28,000ms対28,053ms）で全項目合格
 - `POST /api/videos/:id/scenes/:sceneId/regenerate`を追加。versionを照合し、対象シーンだけをfixture Directorで差し替えて保存する

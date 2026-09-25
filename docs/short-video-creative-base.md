@@ -49,11 +49,22 @@ SHORTFACTORY_BGM_FILE="/path/to/Cozy Gift Shop.wav" \
 pnpm --filter @shortfactory/video exec tsx scripts/create-editorial-sample.ts
 ```
 
+背景側に人物を合わせる比較版では、透過PNGの人物3ポーズも指定する。Midjourney背景は全場面へ適用される。
+
+```sh
+SHORTFACTORY_MJ_BACKGROUND=/path/to/background.png \
+SHORTFACTORY_PAINTED_CHARACTER_THINK=/path/to/character-think.png \
+SHORTFACTORY_PAINTED_CHARACTER_SMILE=/path/to/character-smile.png \
+SHORTFACTORY_PAINTED_CHARACTER_SURPRISE=/path/to/character-surprise.png \
+SHORTFACTORY_BGM_FILE="/path/to/Cozy Gift Shop.wav" \
+pnpm --filter @shortfactory/video exec tsx scripts/create-editorial-sample.ts
+```
+
 `DATABASE_URL`が必須。`SHORTFACTORY_ADMIN_EMAIL`（既定local-admin@example.com）、`VOICEVOX_URL`、`SHORTFACTORY_STORAGE_ROOT`で環境を指定できる。実行ごとに別ブランド・動画を作成するため、以前の素材・動画は上書きしない。完成後、Webを再読み込みすると最新動画を復元し、完成MP4を直接再生する。
 
 ## 品質判定と残り
 
-技術検証：1080×1920 / 30fps / H.264 / AAC音声 / 24〜35秒 / ナレーション切れなし。画風調整後の採用版は28.33秒で全項目に合格。書き出しフレームで表情、字幕、配置を確認する。
+技術検証：1080×1920 / 30fps / H.264 / AAC音声 / 24〜35秒 / ナレーション切れなし。画風調整後の統一ベクター版と、背景合わせ比較版はいずれも28.33秒で全項目に合格。書き出しフレームで表情、字幕、配置を確認する。
 
 人手評価：最初の2秒で悩みが伝わるか、最後まで見たいか、声が自然か、共感か押し付けか、保存したいかを未説明の視聴者に聞く。公開後は冒頭離脱・平均視聴時間・完視聴・保存を別々に測る。今回は人手評価・公開実績・需要検証は未完了。
 

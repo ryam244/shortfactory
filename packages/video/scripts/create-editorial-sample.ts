@@ -21,12 +21,22 @@ try {
   // A separate brand preserves existing user videos and voice assets.
   const brand = await createBrandRepository(db).create({ workspaceId: workspace.id, kit });
   const rows = createAssetRepository(db);
+  const paintedCharacterPaths: Record<string, string | undefined> = {
+    gift_girl: process.env.SHORTFACTORY_PAINTED_CHARACTER_THINK,
+    'gift_girl/think': process.env.SHORTFACTORY_PAINTED_CHARACTER_THINK,
+    'gift_girl/smile': process.env.SHORTFACTORY_PAINTED_CHARACTER_SMILE,
+    'gift_girl/surprise': process.env.SHORTFACTORY_PAINTED_CHARACTER_SURPRISE,
+  };
   for (const [key, artwork] of Object.entries(editorialAssets)) {
-    const storageKey = `assets/${brand.id}/${key.replace('/', '__')}.svg`;
+    const paintedCharacter = key.startsWith('gift_girl') ? paintedCharacterPaths[key] : undefined;
     const isMidjourneyBackground = key === 'shop_shelf' && process.env.SHORTFACTORY_MJ_BACKGROUND;
-    const contentType = isMidjourneyBackground ? 'image/png' : 'image/svg+xml';
-    await storage.put(storageKey, isMidjourneyBackground ? new Uint8Array(await readFile(isMidjourneyBackground)) : new TextEncoder().encode(artwork), contentType);
-    await rows.create({ workspaceId: workspace.id, brandId: brand.id, key, kind: key.startsWith('gift_girl') ? 'character' : ['shop_shelf','room_warm','desk'].includes(key) ? 'background' : 'object', storageKey, contentType, source: isMidjourneyBackground ? 'Midjourney生成 / 39d34f44-a10f-44e1-b4b3-da3f3dece259' : 'Short Factory original vector artwork v1', rightsNote: isMidjourneyBackground ? 'ユーザー所有アカウントで生成。公開前にMidjourneyのプラン・利用規約・商用利用条件を確認する' : '本リポジトリで新規制作したベクター素材。外部のキャラクター画像は使用していません。' });
+    const externalPath = paintedCharacter || isMidjourneyBackground;
+    const contentType = externalPath ? 'image/png' : 'image/svg+xml';
+    const storageKey = `assets/${brand.id}/${key.replace('/', '__')}.${externalPath ? 'png' : 'svg'}`;
+    await storage.put(storageKey, externalPath ? new Uint8Array(await readFile(externalPath)) : new TextEncoder().encode(artwork), contentType);
+    const source = paintedCharacter ? 'ImageGen生成 / Midjourney背景の画風参照' : isMidjourneyBackground ? 'Midjourney生成 / 39d34f44-a10f-44e1-b4b3-da3f3dece259' : 'Short Factory original vector artwork v1';
+    const rightsNote = paintedCharacter ? 'プロジェクト用に生成した人物素材。公開前に生成サービスの利用条件を確認する' : isMidjourneyBackground ? 'ユーザー所有アカウントで生成。公開前にMidjourneyのプラン・利用規約・商用利用条件を確認する' : '本リポジトリで新規制作したベクター素材。外部のキャラクター画像は使用していません。';
+    await rows.create({ workspaceId: workspace.id, brandId: brand.id, key, kind: key.startsWith('gift_girl') ? 'character' : ['shop_shelf','room_warm','desk'].includes(key) ? 'background' : 'object', storageKey, contentType, source, rightsNote });
   }
   const bgmKey = 'bgm_cozy_gift_shop';
   if (process.env.SHORTFACTORY_BGM_FILE) {
@@ -43,7 +53,8 @@ try {
     ['値段より、あなたへの気持ち', '渡したいのは、値段より、あなたを思い出した気持ち。', 'smile', 'room_warm', ['gift_box'], 'slow_zoom'],
     ['迷った日に、思い出して', '次に迷った日、この選び方を思い出してね。', 'smile', 'room_warm', ['card'], 'none'],
   ] as const;
-  const input: VideoPlanInput = { schemaVersion: 1, template: 'yuru_anime_v1', brandId: brand.id, title: '高いほうなら、安心？', fps: 30, ...(process.env.SHORTFACTORY_BGM_FILE ? { bgm: { enabled: true, assetKey: bgmKey, volume: 0.07 } } : {}), cta: '迷った日に、思い出して', scenes: beats.map(([caption,narration,expressionKey,backgroundKey,objectKeys,motion], i) => ({ id: `scene-${String(i+1).padStart(2,'0')}`, role: i === 0 ? 'hook' : i === 6 ? 'cta' : 'body', caption, narration, visual: { characterKey: 'gift_girl', expressionKey, backgroundKey, objectKeys: [...objectKeys] }, motion, minDurationMs: 2800, maxDurationMs: 6000 })) };
+  const selectedBackgroundKey = process.env.SHORTFACTORY_MJ_BACKGROUND ? 'shop_shelf' : null;
+  const input: VideoPlanInput = { schemaVersion: 1, template: 'yuru_anime_v1', brandId: brand.id, title: '高いほうなら、安心？', fps: 30, ...(process.env.SHORTFACTORY_BGM_FILE ? { bgm: { enabled: true, assetKey: bgmKey, volume: 0.07 } } : {}), cta: '迷った日に、思い出して', scenes: beats.map(([caption,narration,expressionKey,backgroundKey,objectKeys,motion], i) => ({ id: `scene-${String(i+1).padStart(2,'0')}`, role: i === 0 ? 'hook' : i === 6 ? 'cta' : 'body', caption, narration, visual: { characterKey: 'gift_girl', expressionKey, backgroundKey: selectedBackgroundKey ?? backgroundKey, objectKeys: [...objectKeys] }, motion, minDurationMs: 2800, maxDurationMs: 6000 })) };
   const valid = validateVideoPlan(input, { brand: kit, availableAssetKeys: new Set([...Object.keys(editorialAssets), ...(process.env.SHORTFACTORY_BGM_FILE ? [bgmKey] : [])]) });
   if (!valid.ok) throw new Error(JSON.stringify(valid.issues));
   const voice = new VoicevoxProvider();

@@ -23,6 +23,8 @@ export interface YuruAnimeProps {
   bgmUrl: string | null;
   /** 完成シーン画像を背景として使い、人物・小物レイヤーを省略するバッチモード。 */
   fullSceneMode?: boolean;
+  /** キャラクターを使わず、字幕と図形の動きだけで訴求するモード。 */
+  kineticTextMode?: boolean;
   /** SNSのUIに隠れる範囲を重ねて表示する（確認用）。 */
   showSafeZone: boolean;
   // Remotionの入力propsはインデックスシグネチャを要求する

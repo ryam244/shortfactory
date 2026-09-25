@@ -10,6 +10,7 @@ import {
 } from "remotion";
 import { SAFE_ZONE } from "../props";
 import { Caption } from "./Caption";
+import { KineticTextScene } from "./KineticTextScene";
 import { PlaceholderBackground, PlaceholderCharacter, PlaceholderObject } from "./Placeholders";
 
 interface SceneViewProps {
@@ -20,9 +21,8 @@ interface SceneViewProps {
   fadeIn: boolean;
   sceneDurationInFrames: number;
   fullSceneMode?: boolean;
+  kineticTextMode?: boolean;
 }
-
-const FADE_FRAMES = 6;
 
 /**
  * キャラクターを置く範囲。上は小物の列の下、下は字幕の上まで。
@@ -36,14 +36,20 @@ const CHARACTER_AREA = {
 } as const;
 const BOUNCE: Partial<SpringConfig> = { damping: 8, stiffness: 160, mass: 0.8 };
 
-export const SceneView: React.FC<SceneViewProps> = ({ scene, brand, assets, fadeIn, sceneDurationInFrames, fullSceneMode = false }) => {
+export const SceneView: React.FC<SceneViewProps> = ({ scene, brand, assets, fadeIn: _fadeIn, sceneDurationInFrames, fullSceneMode = false, kineticTextMode = false }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const { colors } = brand;
   const { characterKey, expressionKey, backgroundKey, objectKeys } = scene.visual;
 
   const progress = interpolate(frame, [0, Math.max(1, sceneDurationInFrames - 1)], [0, 1], { extrapolateRight: "clamp" });
-  const opacity = fadeIn ? interpolate(frame, [0, FADE_FRAMES], [0, 1], { extrapolateRight: "clamp" }) : 1;
+  // シーン間で黒く点滅すると視線が途切れるため、暗転フェードは使わない。
+  // 動きは背景パン・文字の登場・小さなスケール変化に限定する。
+  const opacity = 1;
+
+  if (kineticTextMode) {
+    return <KineticTextScene scene={scene} brand={brand} />;
+  }
 
   const backgroundUrl = fullSceneMode ? assets[`full_scene/${scene.id}`] ?? assets.full_scene : assets[backgroundKey];
   const characterUrl = (expressionKey && assets[`${characterKey}/${expressionKey}`]) || assets[characterKey];

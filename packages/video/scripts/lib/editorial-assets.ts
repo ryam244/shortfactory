@@ -9,15 +9,20 @@ function character(expression: 'think' | 'smile' | 'surprise') {
     : '<ellipse cx="225" cy="260" rx="9" ry="16" fill="#393B44"/><ellipse cx="375" cy="260" rx="9" ry="16" fill="#393B44"/>';
   const mouth = expression === 'surprise' ? '<ellipse cx="300" cy="315" rx="18" ry="25" fill="#E99B89"/>'
     : expression === 'smile' ? '<path d="M267 307q33 50 66 0Z" fill="#E99B89"/>' : '<path d="M278 323q24-12 44 0" fill="none"/>';
+  // IPの識別点：片側だけ長い髪、青緑のスカーフ、星形のバッジ、片耳のヘアクリップ。
+  // 毎回ランダムな生成画像に置き換えず、この形状を全表情で共有する。
   return svg(`<ellipse cx="300" cy="720" rx="195" ry="20" fill="#393B44" opacity=".08" stroke="none"/>
     <path d="M154 312Q79 55 300 54Q525 55 448 352L420 428H174Z" fill="#555064"/>
-    <path d="M220 411L201 690H397L380 411Z" fill="#DD775F"/>
+    <path d="M220 411L201 690H397L380 411Z" fill="#D9685A"/>
     <path d="M210 411L135 495L110 590L171 616L225 486M389 411L465 495L490 590L429 616L375 486" fill="#DD775F"/>
     <path d="M248 388L247 438Q300 477 352 438L351 388" fill="#FFDDC5"/>
+    <path d="M247 423Q300 472 353 423L337 493L300 526L263 493Z" fill="#76B9AC"/>
     <path d="M155 205Q155 115 300 116Q443 116 445 205L427 318Q396 412 300 413Q204 412 173 318Z" fill="#FFDDC5"/>
     <path d="M146 225Q136 93 302 93Q462 93 451 230Q385 188 354 143Q274 220 146 225Z" fill="#555064"/>
     ${eyes}${mouth}<ellipse cx="197" cy="302" rx="26" ry="12" fill="#EF9C8D" stroke="none"/><ellipse cx="403" cy="302" rx="26" ry="12" fill="#EF9C8D" stroke="none"/>
     <path d="M220 687L210 726H282L286 687M321 687L324 726H398L382 687" fill="#555064"/>
+    <path d="M187 165l-35-28 9 54" fill="#76B9AC"/><path d="M166 142l-19-18" stroke="#FFF4DE" stroke-width="12"/>
+    <path d="M285 537l15-20 15 20-7 25h-16Z" fill="#F3C85B"/>
     ${expression === 'think' ? '<path d="M434 565L360 365Q341 336 323 356L311 392L367 582Q401 623 434 565Z" fill="#FFDDC5"/><path d="M201 223l44 11m110 0l40-11" fill="none"/>' : '<path d="M110 590q-21 58 35 49l26-23M490 590q21 58-35 49l-26-23" fill="#FFDDC5"/>'}
     ${expression === 'surprise' ? '<path d="M490 116l26-43m-5 83l44-11" stroke="#DD775F"/>' : ''}`);
 }

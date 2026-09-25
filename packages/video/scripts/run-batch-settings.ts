@@ -15,6 +15,8 @@ const sceneDir = process.env.SHORTFACTORY_BATCH_SCENE_DIR ? path.resolve(process
 const audioDir = path.resolve(process.env.SHORTFACTORY_BATCH_AUDIO_DIR ?? path.join(root, 'storage/audio/18703cec-569f-4fec-8b26-06fb0bfef836'));
 const bgmFile = process.env.SHORTFACTORY_BATCH_BGM ?? path.join(audioDir, 'bgm_cozy_gift_shop.wav');
 const output = path.resolve(process.env.SHORTFACTORY_BATCH_OUTPUT ?? path.join(root, 'outputs/batch-settings-remotion-v1.mp4'));
+const videoMode = process.env.SHORTFACTORY_VIDEO_MODE ?? 'full_scene';
+if (!['full_scene', 'kinetic_text'].includes(videoMode)) throw new Error(`Unsupported SHORTFACTORY_VIDEO_MODE: ${videoMode}`);
 
 const dataUrl = (bytes: Uint8Array, contentType: string) => `data:${contentType};base64,${Buffer.from(bytes).toString('base64')}`;
 
@@ -36,7 +38,8 @@ const props: YuruAnimeProps = {
   },
   sceneAudio: sceneAudio.map((item) => item.url),
   bgmUrl: dataUrl(new Uint8Array(await readFile(bgmFile)), 'audio/wav'),
-  fullSceneMode: true,
+  fullSceneMode: videoMode === 'full_scene',
+  kineticTextMode: videoMode === 'kinetic_text',
   showSafeZone: false,
 };
 if (sceneDir) {

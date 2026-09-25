@@ -11,6 +11,7 @@ export const YuruAnimeV1: React.FC<YuruAnimeProps> = ({
   sceneAudio,
   bgmUrl,
   fullSceneMode = false,
+  kineticTextMode = false,
   showSafeZone,
 }) => {
   const starts = sceneFrames.reduce<number[]>((acc, _, i) => {
@@ -24,7 +25,7 @@ export const YuruAnimeV1: React.FC<YuruAnimeProps> = ({
         const audio = sceneAudio[i];
         return (
           <Sequence key={scene.id} name={scene.id} from={starts[i]} durationInFrames={sceneFrames[i]}>
-            <SceneView scene={scene} brand={brand} assets={assets} fadeIn={i > 0} sceneDurationInFrames={sceneFrames[i]!} fullSceneMode={fullSceneMode} />
+            <SceneView scene={scene} brand={brand} assets={assets} fadeIn={i > 0} sceneDurationInFrames={sceneFrames[i]!} fullSceneMode={fullSceneMode} kineticTextMode={kineticTextMode} />
             {audio ? <Audio src={audio} /> : null}
           </Sequence>
         );

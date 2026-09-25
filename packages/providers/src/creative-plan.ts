@@ -44,8 +44,8 @@ export function composeCreativePlan(brief: CreativeBriefInput, context: Creative
   const scenes: VideoPlanInput["scenes"] = [
     scene("scene-01", "hook", `${text.audience}で「${text.pain}」と感じたら、まずこれを試して。`, shorten(`それ、${text.pain}`, maxCaption), characterKey, backgrounds[0]!, objectKeys[0]!, "slow_zoom", 3_500),
     scene("scene-02", "body", `悩みは、${text.pain}。頑張って選んでも、相手に合わないと困ります。`, shorten(text.pain, maxCaption), characterKey, backgrounds[0]!, objectKeys[1]!, "pan_right", 4_000),
-    scene("scene-03", "body", `そこで、${text.solution}。迷うポイントを先に絞ります。`, shorten(`解決：${text.solution}`, maxCaption), characterKey, backgrounds[1]!, objectKeys[1]!, "slow_zoom", 4_000),
-    scene("scene-04", "body", `理由は、${text.proof}。選ぶ基準がぶれにくくなります。`, shorten(`理由：${text.proof}`, maxCaption), characterKey, backgrounds[1]!, objectKeys[0]!, "slide_up", 4_000),
+    scene("scene-03", "body", `そこで、${text.solution}。迷うポイントを先に絞ります。`, captionFor("解決", text.solution, maxCaption), characterKey, backgrounds[1]!, objectKeys[1]!, "slow_zoom", 4_000),
+    scene("scene-04", "body", `理由は、${text.proof}。選ぶ基準がぶれにくくなります。`, captionFor("理由", text.proof, maxCaption), characterKey, backgrounds[1]!, objectKeys[0]!, "slide_up", 4_000),
     scene("scene-05", "cta", `${text.cta}。`, shorten(text.cta, maxCaption), characterKey, backgrounds[1]!, objectKeys[0]!, "bounce", 4_500),
   ];
   const raw: VideoPlanInput = {
@@ -100,6 +100,12 @@ function normalizeBrief(brief: CreativeBriefInput) {
 function shorten(value: string, max: number): string {
   const chars = [...value.trim()];
   return chars.length <= max ? value.trim() : `${chars.slice(0, Math.max(1, max - 1)).join("")}…`;
+}
+
+function captionFor(label: string, value: string, max: number): string {
+  const prefix = `${label}：`;
+  const firstClause = value.split(/[、。！？]/u)[0]!.trim();
+  return shorten(`${prefix}${firstClause}`, max);
 }
 
 function pickAsset(available: ReadonlySet<string>, preferred: string | undefined, candidates: string[]): string {

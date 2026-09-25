@@ -7,7 +7,7 @@ import { bundle } from "@remotion/bundler";
 import { renderMedia, selectComposition } from "@remotion/renderer";
 import { LocalAssetProvider, type LocalAssetManifest } from "@shortfactory/assets";
 import { resolveSceneTiming, ttsTextForScene, type VideoPlanInput } from "@shortfactory/contracts";
-import { createGiftFixtureProviders, JsonTextProvider, VoicevoxProvider } from "@shortfactory/providers";
+import { createGiftFixtureProviders, JsonTextProvider, VoicevoxProvider, type CreativeBriefInput } from "@shortfactory/providers";
 import { LocalStorageProvider } from "@shortfactory/storage";
 import { mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
@@ -19,6 +19,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const outputDir = path.resolve(here, "../out", process.env.SHORTFACTORY_OUTPUT_DIR ?? "fixture-pipeline");
 const outputName = process.env.SHORTFACTORY_OUTPUT_NAME ?? "gift-sample";
 const assetManifestPath = process.env.SHORTFACTORY_ASSET_MANIFEST;
+const creativeBriefPath = process.env.SHORTFACTORY_CREATIVE_BRIEF_FILE;
 const testMode = process.env.SHORTFACTORY_TEST_MODE === "1";
 const assetManifest = assetManifestPath
   ? JSON.parse(await readFile(assetManifestPath, "utf8")) as LocalAssetManifest
@@ -41,6 +42,7 @@ const plan = await textProvider.generatePlan({
   topic,
   brand: fixtureProviders.brand,
   availableAssetKeys: assetManifest ? new Set(Object.keys(assetManifest)) : fixtureProviders.assetKeys,
+  creativeBrief: creativeBriefPath ? JSON.parse(await readFile(creativeBriefPath, "utf8")) as CreativeBriefInput : undefined,
 });
 const voiceDurations = await Promise.all(
   plan.scenes.map(async (scene) => {

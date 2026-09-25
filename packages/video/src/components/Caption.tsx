@@ -40,15 +40,16 @@ export const Caption: React.FC<CaptionProps> = ({ text, color, background, accen
     >
       <div
         style={{
-          background,
-          color,
-          border: `5px solid ${accent}`,
-          borderRadius: 36,
-          padding: "18px 30px",
-          fontSize: 62,
-          lineHeight: 1.28,
+          background: "rgba(31, 40, 35, 0.62)",
+          color: "#FFF9EF",
+          border: "1px solid rgba(255, 249, 239, 0.42)",
+          borderRadius: 18,
+          padding: "14px 28px",
+          fontSize: 58,
+          lineHeight: 1.3,
           textAlign: "center",
-          boxShadow: "0 8px 0 rgba(0,0,0,0.08)",
+          textShadow: "0 3px 5px rgba(0, 0, 0, 0.32)",
+          boxShadow: "0 5px 18px rgba(0, 0, 0, 0.16)",
         }}
       >
         {chunks.map((chunk, i) => (

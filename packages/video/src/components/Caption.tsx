@@ -10,13 +10,14 @@ interface CaptionProps {
   color: string;
   background: string;
   accent: string;
+  centered?: boolean;
 }
 
 /**
  * 字幕。BudouXで文節に分け、文節の途中では改行しない。
  * 位置はSNSのUIに隠れない範囲の下寄せ。
  */
-export const Caption: React.FC<CaptionProps> = ({ text, color, background, accent }) => {
+export const Caption: React.FC<CaptionProps> = ({ text, color, background, accent, centered = false }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const chunks = useMemo(() => parser.parse(text), [text]);
@@ -28,8 +29,8 @@ export const Caption: React.FC<CaptionProps> = ({ text, color, background, accen
     <div
       style={{
         position: "absolute",
-        left: SAFE_ZONE.left,
-        right: SAFE_ZONE.right,
+        left: centered ? SAFE_ZONE.left : SAFE_ZONE.left,
+        right: centered ? SAFE_ZONE.left : SAFE_ZONE.right,
         bottom: SAFE_ZONE.bottom + 40,
         maxHeight: VIDEO_HEIGHT * 0.22,
         display: "flex",

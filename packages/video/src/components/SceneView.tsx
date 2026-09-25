@@ -119,6 +119,7 @@ export const SceneView: React.FC<SceneViewProps> = ({ scene, brand, assets, fade
         color={colors.text}
         background={colors.captionBackground}
         accent={colors.primary}
+        centered={fullSceneMode}
       />
     </AbsoluteFill>
   );

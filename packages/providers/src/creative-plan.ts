@@ -46,10 +46,10 @@ export function composeCreativePlan(brief: CreativeBriefInput, context: Creative
   ];
 
   const scenes: VideoPlanInput["scenes"] = [
-    scene("scene-01", "hook", hookNarration(hookStyle, text.audience, text.pain), hookCaption(hookStyle, text.pain, maxCaption), characterKey, backgrounds[0]!, objectKeys[0]!, "slow_zoom", 3_500),
-    scene("scene-02", "body", `悩みは、${text.pain}。頑張って選んでも、相手に合わないと困ります。`, shorten(text.pain, maxCaption), characterKey, backgrounds[0]!, objectKeys[1]!, "pan_right", 4_000),
-    scene("scene-03", "body", `そこで、${text.solution}。迷うポイントを先に絞ります。`, captionFor("解決", text.solution, maxCaption), characterKey, backgrounds[1]!, objectKeys[1]!, "slow_zoom", 4_000),
-    scene("scene-04", "body", `理由は、${text.proof}。選ぶ基準がぶれにくくなります。`, captionFor("理由", text.proof, maxCaption), characterKey, backgrounds[1]!, objectKeys[0]!, "slide_up", 4_000),
+    scene("scene-01", "hook", hookNarration(hookStyle, text.audience, text.pain), hookCaption(hookStyle, text.pain, maxCaption), characterKey, backgrounds[0]!, objectKeys[0]!, "slow_zoom", 4_500),
+    scene("scene-02", "body", `悩みは、${text.pain}。頑張って選んでも、相手に合わないと困ります。`, shorten(text.pain, maxCaption), characterKey, backgrounds[0]!, objectKeys[1]!, "pan_right", 4_500),
+    scene("scene-03", "body", `そこで、${text.solution}。迷うポイントを先に絞ります。`, captionFor("解決", text.solution, maxCaption), characterKey, backgrounds[1]!, objectKeys[1]!, "slow_zoom", 4_500),
+    scene("scene-04", "body", `理由は、${text.proof}。選ぶ基準がぶれにくくなります。`, captionFor("理由", text.proof, maxCaption), characterKey, backgrounds[1]!, objectKeys[0]!, "slide_up", 4_500),
     scene("scene-05", "cta", `${text.cta}。`, shorten(text.cta, maxCaption), characterKey, backgrounds[1]!, objectKeys[0]!, "bounce", 4_500),
   ];
   const raw: VideoPlanInput = {

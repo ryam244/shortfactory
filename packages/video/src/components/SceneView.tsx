@@ -28,10 +28,10 @@ const FADE_FRAMES = 6;
  * 字幕（Caption）は安全域の下端から40px上に、最大2行で置く前提。
  */
 const CHARACTER_AREA = {
-  top: SAFE_ZONE.top + 320,
-  bottom: SAFE_ZONE.bottom + 320,
-  left: SAFE_ZONE.left,
-  right: SAFE_ZONE.right,
+  top: SAFE_ZONE.top + 140,
+  bottom: SAFE_ZONE.bottom + 240,
+  left: SAFE_ZONE.left + 20,
+  right: SAFE_ZONE.right + 20,
 } as const;
 const BOUNCE: Partial<SpringConfig> = { damping: 8, stiffness: 160, mass: 0.8 };
 
@@ -51,10 +51,14 @@ export const SceneView: React.FC<SceneViewProps> = ({ scene, brand, assets, fade
     <AbsoluteFill style={{ opacity }}>
       <AbsoluteFill style={{ transform: cameraTransform(scene.motion, progress) }}>
         {backgroundUrl ? (
-          <Img src={backgroundUrl} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <Img
+            src={backgroundUrl}
+            style={{ width: "100%", height: "100%", objectFit: "cover", filter: "saturate(0.84) brightness(0.9)" }}
+          />
         ) : (
           <PlaceholderBackground assetKey={backgroundKey} base={colors.background} accent={colors.accent} />
         )}
+        <AbsoluteFill style={{ background: "rgba(28, 35, 32, 0.08)" }} />
       </AbsoluteFill>
 
       <div
@@ -66,6 +70,7 @@ export const SceneView: React.FC<SceneViewProps> = ({ scene, brand, assets, fade
           justifyContent: "center",
           transform: `${characterTransform(scene.motion, frame, fps)} translateY(${Math.sin(frame / fps * 2) * 4}px)`,
           transformOrigin: "50% 100%",
+          filter: "drop-shadow(0 12px 14px rgba(30, 25, 20, 0.18))",
         }}
       >
         {characterUrl ? (
@@ -84,12 +89,12 @@ export const SceneView: React.FC<SceneViewProps> = ({ scene, brand, assets, fade
         <div
           style={{
             position: "absolute",
-            top: SAFE_ZONE.top + 80,
+            top: SAFE_ZONE.top + 20,
             left: SAFE_ZONE.left,
             right: SAFE_ZONE.right,
             display: "flex",
             justifyContent: "center",
-            gap: 32,
+            gap: 18,
           }}
         >
           {objectKeys.map((key, i) => {
@@ -98,7 +103,7 @@ export const SceneView: React.FC<SceneViewProps> = ({ scene, brand, assets, fade
             return (
               <div key={key} style={{ transform: `scale(${pop})` }}>
                 {url ? (
-                  <Img src={url} style={{ width: 220, height: 220, objectFit: "contain" }} />
+                    <Img src={url} style={{ width: 140, height: 140, objectFit: "contain" }} />
                 ) : (
                   <PlaceholderObject assetKey={key} color={colors.captionBackground} ink={colors.accent} />
                 )}

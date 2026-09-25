@@ -42,11 +42,11 @@ export const Caption: React.FC<CaptionProps> = ({ text, color, background, accen
         style={{
           background,
           color,
-          border: `6px solid ${accent}`,
+          border: `5px solid ${accent}`,
           borderRadius: 36,
-          padding: "22px 36px",
-          fontSize: 68,
-          lineHeight: 1.35,
+          padding: "18px 30px",
+          fontSize: 62,
+          lineHeight: 1.28,
           textAlign: "center",
           boxShadow: "0 8px 0 rgba(0,0,0,0.08)",
         }}

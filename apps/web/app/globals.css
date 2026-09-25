@@ -100,6 +100,16 @@ main fieldset p, main section > p { color: var(--sf-muted); font-size: 13px; lin
 .scene-editor { padding: 0 14px 14px; border-top: 1px solid var(--sf-line); }
 .scene-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .scene-actions button { min-height: 36px !important; padding: 0 12px !important; font-size: 12px; }
+.studio-progress { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 0 0 20px; padding: 12px; border: 1px solid var(--sf-line); border-radius: 14px; background: #fbfcfe; }
+.studio-progress-step { position: relative; display: grid; justify-items: center; gap: 6px; color: #a1a8b7; font-size: 11px; text-align: center; }
+.studio-progress-step:not(:last-child)::after { content: ""; position: absolute; top: 13px; left: calc(50% + 17px); width: calc(100% - 26px); height: 1px; background: var(--sf-line); }
+.studio-progress-step span { display: grid; place-items: center; width: 27px; height: 27px; border: 1px solid #dce1eb; border-radius: 50%; color: #8b94a5; background: white; font-size: 10px; font-weight: 800; }
+.studio-progress-step small { font-size: 11px; }
+.studio-progress-step.is-active { color: var(--sf-primary-dark); font-weight: 800; }
+.studio-progress-step.is-active span { border-color: var(--sf-primary); color: white; background: var(--sf-primary); box-shadow: 0 0 0 4px rgba(109, 92, 231, .1); }
+.studio-progress-step.is-complete { color: #23766e; }
+.studio-progress-step.is-complete span { border-color: #8bd4c8; color: #23766e; background: #e6f7f2; }
+.studio-progress-step.is-complete:not(:last-child)::after { background: #8bd4c8; }
 #studio > section > h2 { display: none; }
 #studio > section > fieldset { background: #fbfcfe; }
 #studio > section > button { min-width: 190px; margin: 4px 0 16px; }

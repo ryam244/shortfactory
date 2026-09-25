@@ -175,8 +175,15 @@ export default function VideoStudio() {
   const toneNeedsFullScene = creativeBrief.toneProfile !== "ip-character";
   const hasFullSceneAsset = Object.keys(previewAssets).some((key) => key === "full_scene" || key.startsWith("full_scene/"));
   const toneLabel = creativeBrief.toneProfile === "ip-character" ? "固定IPキャラクター" : creativeBrief.toneProfile === "realistic-person" ? "実物寄りのリアル人物" : "淡い色調のイラスト人物";
+  const workflowSteps = ["構成", "台本確認", "プレビュー", "書き出し"];
+  const activeWorkflowStep = renderJob?.status === "succeeded" ? 3 : renderJob?.status === "queued" || renderJob?.status === "running" ? 2 : plan ? 1 : 0;
   return <section>
     <h2>動画テスト</h2>
+    <div className="studio-progress" aria-label="動画作成の進行状況">
+      {workflowSteps.map((step, index) => <div className={`studio-progress-step ${index < activeWorkflowStep ? "is-complete" : ""} ${index === activeWorkflowStep ? "is-active" : ""}`} key={step}>
+        <span>{index < activeWorkflowStep ? "✓" : String(index + 1).padStart(2, "0")}</span><small>{step}</small>
+      </div>)}
+    </div>
     <label>Workspace<select value={workspaceId} onChange={(event) => { setWorkspaceId(event.target.value); setBrandId(""); }}><option value="">選択してください</option>{workspaces.map((workspace) => <option key={workspace.id} value={workspace.id}>{workspace.name}</option>)}</select></label>
     <label>ブランド<select value={brandId} onChange={(event) => setBrandId(event.target.value)}><option value="">選択してください</option>{visibleBrands.map((brand) => <option key={brand.id} value={brand.id}>{brand.name}</option>)}</select></label>
     <label>テーマ<input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="例：春の手土産を選ぶコツ" /></label>

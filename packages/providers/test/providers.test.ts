@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { giftPlanFixture } from "@shortfactory/contracts";
-import { composeCreativePlan, createGiftFixtureProviders, JsonTextProvider } from "../src/index";
+import { composeCreativePlan, composeCreativePlanVariants, createGiftFixtureProviders, JsonTextProvider } from "../src/index";
 
 describe("fixture providers", () => {
   it("テーマから検証済みVideoPlanを返す", async () => {
@@ -69,5 +69,22 @@ describe("composeCreativePlan", () => {
     expect(plan.scenes[2]!.caption).toContain("解決");
     expect(plan.scenes[3]!.caption).toContain("理由");
     expect(plan.scenes[4]!.caption).toContain("保存");
+  });
+
+  it("同じブリーフから3種類のフックを比較生成できる", () => {
+    const fixture = createGiftFixtureProviders();
+    const variants = composeCreativePlanVariants({
+      audience: "職場に手土産を持っていく人",
+      pain: "何を選べばいいか迷う",
+      solution: "日持ちと個包装で絞る",
+      proof: "配りやすくて安心",
+      cta: "保存して次に使う",
+    }, { brand: fixture.brand, availableAssetKeys: fixture.assetKeys });
+
+    expect(Object.keys(variants)).toEqual(["question", "empathy", "promise"]);
+    expect(variants.question.scenes[0]!.caption).toContain("？");
+    expect(variants.empathy.scenes[0]!.caption).toContain("それ");
+    expect(variants.promise.scenes[0]!.caption).toContain("整理");
+    expect(variants.question.scenes.slice(1).map((scene) => scene.caption)).toEqual(variants.promise.scenes.slice(1).map((scene) => scene.caption));
   });
 });

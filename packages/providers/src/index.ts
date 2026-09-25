@@ -9,7 +9,7 @@ import {
   type VideoPlan,
   type VideoPlanInput,
 } from "@shortfactory/contracts";
-export { composeCreativePlan, type CreativeBriefInput, type CreativePlanContext } from "./creative-plan";
+export { composeCreativePlan, composeCreativePlanVariants, type CreativeBriefInput, type CreativePlanContext, type HookStyle } from "./creative-plan";
 import { composeCreativePlan, type CreativeBriefInput } from "./creative-plan";
 
 export interface DirectorInput {

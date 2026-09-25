@@ -11,6 +11,7 @@ export interface CreativeBriefInput {
   solution: string;
   proof: string;
   cta: string;
+  hookStyle?: HookStyle;
   /** ブランド固有の素材を指定したい場合だけ上書きする。 */
   assets?: {
     characterKey?: string;
@@ -18,6 +19,8 @@ export interface CreativeBriefInput {
     objects?: string[];
   };
 }
+
+export type HookStyle = "question" | "empathy" | "promise";
 
 export interface CreativePlanContext {
   brand: BrandKit;
@@ -31,6 +34,7 @@ export interface CreativePlanContext {
 export function composeCreativePlan(brief: CreativeBriefInput, context: CreativePlanContext): VideoPlan {
   const maxCaption = context.brand.captionMaxChars;
   const text = normalizeBrief(brief);
+  const hookStyle = brief.hookStyle ?? "empathy";
   const characterKey = pickAsset(context.availableAssetKeys, brief.assets?.characterKey, ["gift_girl", "character", "girl"]);
   const backgrounds = [
     pickAsset(context.availableAssetKeys, brief.assets?.backgrounds?.[0], ["shop_shelf", "background", "room_warm"]),
@@ -42,7 +46,7 @@ export function composeCreativePlan(brief: CreativeBriefInput, context: Creative
   ];
 
   const scenes: VideoPlanInput["scenes"] = [
-    scene("scene-01", "hook", `${text.audience}で「${text.pain}」と感じたら、まずこれを試して。`, shorten(`それ、${text.pain}`, maxCaption), characterKey, backgrounds[0]!, objectKeys[0]!, "slow_zoom", 3_500),
+    scene("scene-01", "hook", hookNarration(hookStyle, text.audience, text.pain), hookCaption(hookStyle, text.pain, maxCaption), characterKey, backgrounds[0]!, objectKeys[0]!, "slow_zoom", 3_500),
     scene("scene-02", "body", `悩みは、${text.pain}。頑張って選んでも、相手に合わないと困ります。`, shorten(text.pain, maxCaption), characterKey, backgrounds[0]!, objectKeys[1]!, "pan_right", 4_000),
     scene("scene-03", "body", `そこで、${text.solution}。迷うポイントを先に絞ります。`, captionFor("解決", text.solution, maxCaption), characterKey, backgrounds[1]!, objectKeys[1]!, "slow_zoom", 4_000),
     scene("scene-04", "body", `理由は、${text.proof}。選ぶ基準がぶれにくくなります。`, captionFor("理由", text.proof, maxCaption), characterKey, backgrounds[1]!, objectKeys[0]!, "slide_up", 4_000),
@@ -60,6 +64,14 @@ export function composeCreativePlan(brief: CreativeBriefInput, context: Creative
   const result = validateVideoPlan(raw, { brand: context.brand, availableAssetKeys: context.availableAssetKeys });
   if (!result.ok) throw new Error(`Creative brief is invalid: ${result.issues.map((issue) => `${issue.path} ${issue.message}`).join(" / ")}`);
   return result.plan;
+}
+
+/** 同じブリーフから、冒頭の訴求だけを変えた比較用プランを作る。 */
+export function composeCreativePlanVariants(brief: CreativeBriefInput, context: CreativePlanContext): Record<HookStyle, VideoPlan> {
+  return Object.fromEntries(((["question", "empathy", "promise"] as const).map((hookStyle) => [
+    hookStyle,
+    composeCreativePlan({ ...brief, hookStyle }, context),
+  ]))) as Record<HookStyle, VideoPlan>;
 }
 
 function scene(
@@ -106,6 +118,18 @@ function captionFor(label: string, value: string, max: number): string {
   const prefix = `${label}：`;
   const firstClause = value.split(/[、。！？]/u)[0]!.trim();
   return shorten(`${prefix}${firstClause}`, max);
+}
+
+function hookNarration(style: HookStyle, audience: string, pain: string): string {
+  if (style === "question") return `${audience}なら、まだ「${pain}」で迷ってる？まずはこれ。`;
+  if (style === "promise") return `${audience}向け。${pain}を短く整理する方法を紹介します。`;
+  return `${audience}で「${pain}」と感じたら、まずこれを試して。`;
+}
+
+function hookCaption(style: HookStyle, pain: string, max: number): string {
+  if (style === "question") return shorten(`まだ${pain}？`, max);
+  if (style === "promise") return shorten(`${pain}を整理`, max);
+  return shorten(`それ、${pain}`, max);
 }
 
 function pickAsset(available: ReadonlySet<string>, preferred: string | undefined, candidates: string[]): string {

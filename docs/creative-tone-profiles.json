@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "profiles": [
+    {
+      "id": "ip-character",
+      "label": "固定IPキャラクター",
+      "purpose": "シリーズの顔として継続登場させる",
+      "visual": "オリジナル2Dベクター。片側ヘアクリップ、青緑スカーフ、星形バッジを固定。柔らかい濃色線、暖色の服、平面的で読みやすい配色。",
+      "motion": "表情差分、軽い上下動、説明時の手振り。暗転なし。",
+      "voice": "親しみやすく、視聴者の代わりに疑問を持つ案内役。",
+      "assetSource": "packages/video/scripts/lib/editorial-assets.ts",
+      "usage": "character mode"
+    },
+    {
+      "id": "realistic-person",
+      "label": "実物寄りのリアル人物",
+      "purpose": "現実の利用場面・信頼感を伝える",
+      "visual": "自然な日本の店舗・生活空間。実在感のある人物、自然光、素材感のある商品、過度な美肌加工やアニメ線を避ける。",
+      "motion": "緩やかなカメラ移動、手元・商品・表情の順に視線を誘導。",
+      "voice": "具体的な悩みと利用結果を短く伝える。",
+      "assetSource": "outputs/batch-realistic-v1.mp4 と work/batch-test/variants/realistic.png",
+      "usage": "full-scene mode"
+    },
+    {
+      "id": "pale-illustration-person",
+      "label": "淡い色調のイラスト人物",
+      "purpose": "親しみやすさ・やわらかい説明感を伝える",
+      "visual": "淡いクリーム・青緑・コーラルを基調にした2Dイラスト。人物と背景の線・光・彩度を統一し、説明する手のポーズを優先する。",
+      "motion": "視線の先に商品や要点を置き、軽いポップインと図形アクセントで説明する。",
+      "voice": "押し付けず、ひとつの気づきを渡す話し方。",
+      "assetSource": "outputs/batch-explainer-v1.mp4 と work/batch-test/variants/explainer.png",
+      "usage": "full-scene mode"
+    }
+  ]
+}

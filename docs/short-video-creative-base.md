@@ -64,12 +64,13 @@ pnpm --filter @shortfactory/video exec tsx scripts/create-editorial-sample.ts
 
 ```sh
 SHORTFACTORY_BATCH_SCENE=/path/to/full-scene.png \
+SHORTFACTORY_BATCH_SCENE_DIR=/path/to/scenes \
 SHORTFACTORY_BATCH_AUDIO_DIR=/path/to/audio \
 SHORTFACTORY_BATCH_BGM=/path/to/bgm.wav \
 pnpm --filter @shortfactory/video batch:settings
 ```
 
-この入口は人物と背景の自然な一体感を優先し、Remotionで字幕・ナレーション・BGMを後合成する。複数シーン画像の自動生成と複数設定の一括展開は次の作業。
+この入口は人物と背景の自然な一体感を優先し、Remotionで字幕・ナレーション・BGMを後合成する。`SHORTFACTORY_BATCH_SCENE_DIR` に `scene-01.png` のような画像があれば場面ごとに切り替え、未指定の場面は `SHORTFACTORY_BATCH_SCENE` を使う。
 
 `DATABASE_URL`が必須。`SHORTFACTORY_ADMIN_EMAIL`（既定local-admin@example.com）、`VOICEVOX_URL`、`SHORTFACTORY_STORAGE_ROOT`で環境を指定できる。実行ごとに別ブランド・動画を作成するため、以前の素材・動画は上書きしない。完成後、Webを再読み込みすると最新動画を復元し、完成MP4を直接再生する。
 

@@ -3,6 +3,7 @@ import { renderMedia, selectComposition } from '@remotion/renderer';
 import { brandKitSchema, giftBrandFixture, giftPlanFixture, resolveSceneTiming, type VideoPlan } from '@shortfactory/contracts';
 import { parseWavDurationMs } from '@shortfactory/providers';
 import { readFile, mkdir } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { COMPOSITION_ID, VIDEO_HEIGHT, VIDEO_WIDTH, type YuruAnimeProps } from '../src/props';
@@ -10,6 +11,7 @@ import { COMPOSITION_ID, VIDEO_HEIGHT, VIDEO_WIDTH, type YuruAnimeProps } from '
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../../..');
 const sceneImage = path.resolve(process.env.SHORTFACTORY_BATCH_SCENE ?? path.join(root, 'work/batch-test/full-scene.png'));
+const sceneDir = process.env.SHORTFACTORY_BATCH_SCENE_DIR ? path.resolve(process.env.SHORTFACTORY_BATCH_SCENE_DIR) : null;
 const audioDir = path.resolve(process.env.SHORTFACTORY_BATCH_AUDIO_DIR ?? path.join(root, 'storage/audio/18703cec-569f-4fec-8b26-06fb0bfef836'));
 const bgmFile = process.env.SHORTFACTORY_BATCH_BGM ?? path.join(audioDir, 'bgm_cozy_gift_shop.wav');
 const output = path.resolve(process.env.SHORTFACTORY_BATCH_OUTPUT ?? path.join(root, 'outputs/batch-settings-remotion-v1.mp4'));
@@ -37,6 +39,12 @@ const props: YuruAnimeProps = {
   fullSceneMode: true,
   showSafeZone: false,
 };
+if (sceneDir) {
+  for (const scene of plan.scenes) {
+    const scenePath = path.join(sceneDir, `${scene.id}.png`);
+    if (existsSync(scenePath)) props.assets[`full_scene/${scene.id}`] = dataUrl(new Uint8Array(await readFile(scenePath)), 'image/png');
+  }
+}
 
 await mkdir(path.dirname(output), { recursive: true });
 const serveUrl = await bundle({ entryPoint: path.resolve(here, '../src/remotion-entry.ts'), publicDir: path.resolve(here, '../public') });

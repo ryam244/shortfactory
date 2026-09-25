@@ -45,7 +45,7 @@ export const SceneView: React.FC<SceneViewProps> = ({ scene, brand, assets, fade
   const progress = interpolate(frame, [0, Math.max(1, sceneDurationInFrames - 1)], [0, 1], { extrapolateRight: "clamp" });
   const opacity = fadeIn ? interpolate(frame, [0, FADE_FRAMES], [0, 1], { extrapolateRight: "clamp" }) : 1;
 
-  const backgroundUrl = fullSceneMode ? assets.full_scene : assets[backgroundKey];
+  const backgroundUrl = fullSceneMode ? assets[`full_scene/${scene.id}`] ?? assets.full_scene : assets[backgroundKey];
   const characterUrl = (expressionKey && assets[`${characterKey}/${expressionKey}`]) || assets[characterKey];
 
   return (

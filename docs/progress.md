@@ -1,6 +1,6 @@
 # Short Factory 進行表
 
-最終更新：2026-09-25 10:35 JST
+最終更新：2026-09-25 23:42 JST
 基準文書：[master-plan.md](./master-plan.md)
 
 ## 現在地
@@ -81,6 +81,7 @@ JSON台本・登録素材・VOICEVOX音声を組み合わせて、ローカルPC
 - `fixtureVoiceDurationMs`を契約層へ追加し、Preview・Worker・FixtureVoiceProviderが同じ音声尺からシーンフレームを計算するよう統一
 - 保存済み`tts_scene_XX_*`素材がある場合は、実測WAV尺と音声データをPreview・Workerで利用。未生成シーンはfixtureへフォールバックする
 - Video Studioが選択ブランドの登録素材を取得し、認証済みcontent URLをPreviewへ渡す。未登録キーは既存のプレースホルダー描画を使う
+- Webダッシュボードの型チェック・テスト（2件）・差分検査を通過。動画Studioの構成／台本確認／プレビュー／書き出しステップ表示と、台本保存・MP4生成の操作エリアを実装
 - `SHORTFACTORY_VIDEO_ID=<id> pnpm --filter @shortfactory/video verify:render`で最新MP4をffprobe検証し、台本・実音声から計算した尺との差を150ms以内で判定する
 - ローカルE2Eでrender成功後に`verify:render`を実行し、1080×1920・H.264・AAC・30fps・尺差53ms（28,000ms対28,053ms）で全項目合格
 - `POST /api/videos/:id/scenes/:sceneId/regenerate`を追加。versionを照合し、対象シーンだけをfixture Directorで差し替えて保存する

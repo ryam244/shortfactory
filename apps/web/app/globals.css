@@ -100,6 +100,14 @@ main fieldset p, main section > p { color: var(--sf-muted); font-size: 13px; lin
 .scene-editor { padding: 0 14px 14px; border-top: 1px solid var(--sf-line); }
 .scene-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .scene-actions button { min-height: 36px !important; padding: 0 12px !important; font-size: 12px; }
+.studio-action-bar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 18px; padding: 14px; border: 1px solid #dfe3ee; border-radius: 14px; background: #f8f7ff; }
+.studio-action-bar strong, .studio-action-bar small { display: block; }
+.studio-action-bar strong { font-size: 13px; }
+.studio-action-bar small { margin-top: 4px; color: var(--sf-muted); font-size: 12px; }
+.studio-action-buttons { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.studio-action-buttons button:last-child { background: var(--sf-primary-dark) !important; }
+.studio-job-state { margin: 10px 0 0; color: var(--sf-muted); font-size: 12px; }
+.studio-job-state strong { color: var(--sf-ink); }
 .studio-progress { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 0 0 20px; padding: 12px; border: 1px solid var(--sf-line); border-radius: 14px; background: #fbfcfe; }
 .studio-progress-step { position: relative; display: grid; justify-items: center; gap: 6px; color: #a1a8b7; font-size: 11px; text-align: center; }
 .studio-progress-step:not(:last-child)::after { content: ""; position: absolute; top: 13px; left: calc(50% + 17px); width: calc(100% - 26px); height: 1px; background: var(--sf-line); }
@@ -145,4 +153,7 @@ main a { color: var(--sf-primary-dark); }
   .metric-grid { gap: 10px; }
   .metric-card { min-height: 106px; padding: 15px; }
   .metric-card strong { font-size: 24px; }
+  .studio-action-bar { align-items: stretch; flex-direction: column; }
+  .studio-action-buttons { justify-content: stretch; }
+  .studio-action-buttons button { flex: 1; }
 }

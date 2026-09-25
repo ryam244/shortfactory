@@ -110,6 +110,7 @@ export default function BrandSettings() {
     <form onSubmit={uploadAsset}>
       <label>ブランド<select value={assetBrandId} onChange={(event) => setAssetBrandId(event.target.value)}><option value="">選択してください</option>{brands.filter((brand) => brand.workspaceId === workspaceId).map((brand) => <option key={brand.id} value={brand.id}>{brand.name}</option>)}</select></label>
       <label>素材キー<input value={assetKey} onChange={(event) => setAssetKey(event.target.value)} placeholder="character_01" required pattern="[a-z0-9][a-z0-9_]*" /></label>
+      <p>トーン用の完成シーン素材は `full_scene` または `full_scene/scene-01` の形式で登録すると、動画作成時に自動選択されます。</p>
       <label>種類<input value={assetKind} onChange={(event) => setAssetKind(event.target.value)} required /></label>
       <label>出所<input value={assetSource} onChange={(event) => setAssetSource(event.target.value)} placeholder="自作、購入元URLなど" required /></label>
       <label>利用権情報<input value={assetRightsNote} onChange={(event) => setAssetRightsNote(event.target.value)} placeholder="商用利用可、ライセンス名など" required /></label>
